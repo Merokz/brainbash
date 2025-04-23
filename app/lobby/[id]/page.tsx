@@ -49,7 +49,7 @@ export default function LobbyPage({ params }: { params: { id: string } }) {
 
     return () => clearInterval(interval)
   }, [params.id])
-
+ dlskjvgnskaeruhg
   const handleCopyJoinCode = () => {
     navigator.clipboard.writeText(lobby.joinCode)
   }
