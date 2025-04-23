@@ -44,7 +44,7 @@ export default async function Home() {
         <HomeHero user={user} />
         <div className="container py-8 grid md:grid-cols-2 gap-8">
           <PublicLobbies />
-          <JoinPrivateGame />
+          <JoinPrivateGame/>
         </div>
       </main>
       <footer className="border-t py-6 md:py-0">
