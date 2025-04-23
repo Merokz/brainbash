@@ -1,126 +1,140 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// prisma/schema.prisma
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "sqlserver"
+  // Make sure this URL is correctly configured, potentially using env("DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id           Int       @id @default(autoincrement())
-  username     String    @unique
-  email        String    @unique
-  password     String
-  isRegistered Boolean   @default(true)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  valid        Boolean   @default(true)
-  quizzes      Quiz[]
-  lobbies      Lobby[]
-  participants Participant[]
+  id           Int           @id @default(autoincrement()) @map("id")
+  username     String        @unique @map("username")
+  email        String        @unique @map("email")
+  password     String        @map("password")
+  isRegistered Boolean       @default(true) @map("is_registered")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  valid        Boolean       @default(true) @map("valid")
+
+  quizzes      Quiz[]        @relation("UserQuizzes")
+  lobbies      Lobby[]       @relation("UserLobbies")
+  participants Participant[] @relation("UserParticipants")
+
+  @@map("users")
 }
 
 model Quiz {
-  id          Int        @id @default(autoincrement())
-  title       String
-  description String?    
-  creator     User       @relation(fields: [creatorId], references: [id])
-  creatorId   Int
-  isPublic    Boolean    @default(false)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  valid       Boolean    @default(true)
-  questions   Question[]
-  lobbies     Lobby[]
+  id          Int        @id @default(autoincrement()) @map("id")
+  title       String     @map("title")
+  description String?    @map("description")
+  creator     User       @relation(name: "UserQuizzes", fields: [creatorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  creatorId   Int        @map("creator_id")
+  isPublic    Boolean    @default(false) @map("is_public")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  valid       Boolean    @default(true) @map("valid")
+
+  questions   Question[] @relation("QuizQuestions")
+  lobbies     Lobby[]    @relation("QuizLobbies")
+
+  @@map("quizzes")
 }
 
-enum QuestionType {
-  MULTIPLE_CHOICE
-  TRUE_FALSE
-  SINGLE_CHOICE
-  OPEN_ENDED
-}
+// Note: Enums are not natively supported in SQL Server by Prisma.
+// We use String type and map it. Ensure database column type accommodates these values.
+// Example QuestionType values: "MULTIPLE_CHOICE", "TRUE_FALSE", "SINGLE_CHOICE", "OPEN_ENDED"
 
 model Question {
-  id             Int               @id @default(autoincrement())
-  quiz           Quiz              @relation(fields: [quizId], references: [id])
-  quizId         Int
-  questionText   String            
-  image          String?
-  orderNum       Int
-  questionType   QuestionType
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-  valid          Boolean           @default(true)
-  answers        Answer[]
-  participantAnswers ParticipantAnswer[]
+  id           Int                 @id @default(autoincrement()) @map("id")
+  quiz         Quiz                @relation(name: "QuizQuestions", fields: [quizId], references: [id])
+  quizId       Int                 @map("quiz_id")
+  questionText String              @map("question_text")
+  image        String?             @map("image")
+  orderNum     Int                 @map("order_num")
+  questionType String              @default("SINGLE_CHOICE") @map("question_type") // Using String for SQL Server
+  createdAt    DateTime            @default(now()) @map("created_at")
+  updatedAt    DateTime            @updatedAt @map("updated_at")
+  valid        Boolean             @default(true) @map("valid")
+
+  answers            Answer[]            @relation("QuestionAnswers")
+  participantAnswers ParticipantAnswer[] @relation("QuestionParticipantAnswers")
+
+  @@map("questions")
 }
 
 model Answer {
-  id                Int               @id @default(autoincrement())
-  question          Question          @relation(fields: [questionId], references: [id])
-  questionId        Int
-  answerText        String            
-  isCorrect         Boolean
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
-  valid             Boolean           @default(true)
-  participantAnswers ParticipantAnswer[]
+  id           Int                 @id @default(autoincrement()) @map("id")
+  question     Question            @relation(name: "QuestionAnswers", fields: [questionId], references: [id])
+  questionId   Int                 @map("question_id")
+  answerText   String              @map("answer_text")
+  isCorrect    Boolean             @default(false) @map("is_correct") // Assuming default false if not specified
+  createdAt    DateTime            @default(now()) @map("created_at")
+  updatedAt    DateTime            @updatedAt @map("updated_at")
+  valid        Boolean             @default(true) @map("valid")
+
+  participantAnswers ParticipantAnswer[] @relation("AnswerParticipantAnswers")
+
+  @@map("answers")
 }
 
-enum GameState {
-  IN_LOBBY
-  IN_GAME
-  CONCLUDED
-}
+// Note: Enums are not natively supported in SQL Server by Prisma.
+// We use String type and map it. Ensure database column type accommodates these values.
+// Example GameState values: "IN_LOBBY", "IN_GAME", "CONCLUDED"
 
 model Lobby {
-  id             Int          @id @default(autoincrement())
-  quiz           Quiz         @relation(fields: [quizId], references: [id])
-  quizId         Int
-  host           User         @relation(fields: [hostId], references: [id])
-  hostId         Int
-  state          GameState    @default(IN_LOBBY)
-  joinCode       String       @unique
-  timeToAnswer   Int          @default(30)
-  isRandomOrder  Boolean      @default(false)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  valid          Boolean      @default(true)
-  participants   Participant[]
+  id            Int           @id @default(autoincrement()) @map("id")
+  quiz          Quiz          @relation(name: "QuizLobbies", fields: [quizId], references: [id])
+  quizId        Int           @map("quiz_id")
+  host          User          @relation(name: "UserLobbies", fields: [hostId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  hostId        Int           @map("host_id")
+  state         String        @default("IN_LOBBY") @map("state") // Using String for SQL Server
+  joinCode      String        @unique @map("join_code")
+  timeToAnswer  Int           @default(30) @map("time_to_answer")
+  isRandomOrder Boolean       @default(false) @map("is_random_order")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  valid         Boolean       @default(true) @map("valid")
+
+  participants  Participant[] @relation("LobbyParticipants")
+
+  @@map("lobbies")
 }
 
 model Participant {
-  id               Int               @id @default(autoincrement())
-  username         String
-  score            Int               @default(0)
-  user             User?             @relation(fields: [userId], references: [id])
-  userId           Int?
-  lobby            Lobby             @relation(fields: [lobbyId], references: [id])
-  lobbyId          Int
-  sessionToken     String            @unique
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  valid            Boolean           @default(true)
-  participantAnswers ParticipantAnswer[]
+  id           Int                 @id @default(autoincrement()) @map("id")
+  username     String              @map("username")
+  score        Int                 @default(0) @map("score")
+  user         User?               @relation(name: "UserParticipants", fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  userId       Int?                @map("user_id")
+  lobby        Lobby               @relation(name: "LobbyParticipants", fields: [lobbyId], references: [id])
+  lobbyId      Int                 @map("lobby_id")
+  sessionToken String              @unique @map("session_token")
+  createdAt    DateTime            @default(now()) @map("created_at")
+  updatedAt    DateTime            @updatedAt @map("updated_at")
+  valid        Boolean             @default(true) @map("valid")
 
-  @@unique([lobbyId, username])
+  participantAnswers ParticipantAnswer[] @relation("ParticipantAnswers")
+
+  @@unique([lobbyId, username]) // Composite unique constraint
+  @@map("participants")
 }
 
 model ParticipantAnswer {
-  id             Int          @id @default(autoincrement())
-  participant    Participant  @relation(fields: [participantId], references: [id])
-  participantId  Int
-  question       Question     @relation(fields: [questionId], references: [id])
-  questionId     Int
-  answer         Answer?      @relation(fields: [answerId], references: [id])
-  answerId       Int?
-  timeToAnswer   Int
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  valid          Boolean      @default(true)
+  id            Int         @id @default(autoincrement()) @map("id")
+  participant   Participant @relation(name: "ParticipantAnswers", fields: [participantId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  participantId Int         @map("participant_id")
+  question      Question    @relation(name: "QuestionParticipantAnswers", fields: [questionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  questionId    Int         @map("question_id")
+  answer        Answer?     @relation(name: "AnswerParticipantAnswers", fields: [answerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  answerId      Int?        @map("answer_id")
+  timeToAnswer  Int         @map("time_to_answer")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+  valid         Boolean     @default(true) @map("valid")
+
+  @@map("participant_answers")
 }
