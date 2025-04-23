@@ -1,0 +1,126 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  username     String    @unique
+  email        String    @unique
+  password     String
+  isRegistered Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  valid        Boolean   @default(true)
+  quizzes      Quiz[]
+  lobbies      Lobby[]
+  participants Participant[]
+}
+
+model Quiz {
+  id          Int        @id @default(autoincrement())
+  title       String
+  description String?    
+  creator     User       @relation(fields: [creatorId], references: [id])
+  creatorId   Int
+  isPublic    Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  valid       Boolean    @default(true)
+  questions   Question[]
+  lobbies     Lobby[]
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+  SINGLE_CHOICE
+  OPEN_ENDED
+}
+
+model Question {
+  id             Int               @id @default(autoincrement())
+  quiz           Quiz              @relation(fields: [quizId], references: [id])
+  quizId         Int
+  questionText   String            
+  image          String?
+  orderNum       Int
+  questionType   QuestionType
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  valid          Boolean           @default(true)
+  answers        Answer[]
+  participantAnswers ParticipantAnswer[]
+}
+
+model Answer {
+  id                Int               @id @default(autoincrement())
+  question          Question          @relation(fields: [questionId], references: [id])
+  questionId        Int
+  answerText        String            
+  isCorrect         Boolean
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  valid             Boolean           @default(true)
+  participantAnswers ParticipantAnswer[]
+}
+
+enum GameState {
+  IN_LOBBY
+  IN_GAME
+  CONCLUDED
+}
+
+model Lobby {
+  id             Int          @id @default(autoincrement())
+  quiz           Quiz         @relation(fields: [quizId], references: [id])
+  quizId         Int
+  host           User         @relation(fields: [hostId], references: [id])
+  hostId         Int
+  state          GameState    @default(IN_LOBBY)
+  joinCode       String       @unique
+  timeToAnswer   Int          @default(30)
+  isRandomOrder  Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  valid          Boolean      @default(true)
+  participants   Participant[]
+}
+
+model Participant {
+  id               Int               @id @default(autoincrement())
+  username         String
+  score            Int               @default(0)
+  user             User?             @relation(fields: [userId], references: [id])
+  userId           Int?
+  lobby            Lobby             @relation(fields: [lobbyId], references: [id])
+  lobbyId          Int
+  sessionToken     String            @unique
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  valid            Boolean           @default(true)
+  participantAnswers ParticipantAnswer[]
+
+  @@unique([lobbyId, username])
+}
+
+model ParticipantAnswer {
+  id             Int          @id @default(autoincrement())
+  participant    Participant  @relation(fields: [participantId], references: [id])
+  participantId  Int
+  question       Question     @relation(fields: [questionId], references: [id])
+  questionId     Int
+  answer         Answer?      @relation(fields: [answerId], references: [id])
+  answerId       Int?
+  timeToAnswer   Int
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  valid          Boolean      @default(true)
+}
