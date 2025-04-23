@@ -14,5 +14,3 @@ npx prisma migrate resolve --applied 0_init
 ## Environment
 
 Set the env variables in the `.env` file to the respective ones from the `.env.example`
-
-If this wont work VS is GAY
