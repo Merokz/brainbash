@@ -1,54 +1,43 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect, SetStateAction } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { DashboardHeader } from "@/components/dashboard-header"
 import { QRCodeSVG } from "qrcode.react"
 import { Copy, Users } from "lucide-react"
+import io from "socket.io-client"
 
 export default function LobbyPage({ params }: { params: { id: string } }) {
-  const [user, setUser] = useState<any>(null)
-  const [lobby, setLobby] = useState<any>(null)
-  const [participants, setParticipants] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const router = useRouter()
+  const [user, setUser] = useState<any>(null);
+  const [lobby, setLobby] = useState<any>(null);
+  const [participants, setParticipants] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const isHost = searchParams.get("host") === "1";
 
   useEffect(() => {
-    // In a real app, we would fetch the user data and lobby data from an API
-    // For now, we'll just simulate it
-    setUser({ username: "Host User" })
-    setLobby({
-      id: params.id,
-      joinCode: "12345",
-      quiz: {
-        title: "Sample Quiz",
-        description: "A sample quiz for demonstration",
-      },
-    })
-    setParticipants([])
-    setLoading(false)
+    // TODO: Fetch real user and lobby data here
+    setLoading(false);
 
-    // In a real app, we would set up a SignalR connection to receive real-time updates
-    // For now, we'll just simulate it with a timer
-    const interval = setInterval(() => {
-      setParticipants((prev) => {
-        // Simulate random participants joining
-        if (Math.random() > 0.7 && prev.length < 10) {
-          const newParticipant = {
-            id: Date.now(),
-            username: `User${prev.length + 1}`,
-            score: 0,
-          }
-          return [...prev, newParticipant]
-        }
-        return prev
-      })
-    }, 3000)
-
-    return () => clearInterval(interval)
-  }, [params.id])
+    const socket = io();
+    if (isHost) {
+      socket.emit("join-lobby-host", { lobbyId: params.id });
+    } else {
+      // TODO: Replace with real user info
+      const participant = { id: socket.id, username: `User-${socket.id.substring(0, 5)}` };
+      setUser(participant);
+      socket.emit("join-lobby", { lobbyId: params.id, participant });
+    }
+    socket.on("participants-update", (updatedParticipants: SetStateAction<any[]>) => {
+      setParticipants(updatedParticipants);
+    });
+    return () => {
+      socket.disconnect();
+    };
+  }, [params.id, isHost])
 
   const handleCopyJoinCode = () => {
     navigator.clipboard.writeText(lobby.joinCode)
