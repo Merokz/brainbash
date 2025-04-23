@@ -1,22 +1,29 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 import { QuizForm } from "@/components/quiz-form"
 import { DashboardHeader } from "@/components/dashboard-header"
-import { getUserFromToken } from "@/lib/auth"
+import { Quiz } from "@prisma/client"
 
-export default async function EditQuiz({ params }: { params: { id: string, user: {}} }) {
-  
+export default function EditQuiz({ params }: { params: { id: string} }) {
+  const [quiz, setQuiz] = useState<Quiz>();
   const [loading, setLoading] = useState(true)
-  const router = useRouter()
-  const user = await getUserFromToken();
+  const [user, setUser] = useState<any>(null)
+  
 
   // In a real app, we would fetch the user data here
   // For now, we'll just simulate it
-  useState(() => {
-    setLoading(false)
-  })
+  useEffect(() => {
+    async function fetchQuiz() {
+        const response = await fetch(`/api/quizzes/${params.id}`);
+        const data = await response.json();
+        console.log(data);
+        setQuiz(data);
+    }
+    setUser({ username: "User" });
+    fetchQuiz();
+    setLoading(false);
+  }, [])
 
   if (loading) {
     return (
