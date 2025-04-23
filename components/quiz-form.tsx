@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -34,6 +34,15 @@ export function QuizForm({ quiz }: { quiz?: any }) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
+
+  useEffect(() => {
+    if (quiz) {
+      setTitle(quiz.title || "")
+      setDescription(quiz.description || "")
+      setIsPublic(quiz.isPublic || false)
+      setQuestions(quiz.questions || [])
+    }
+  }, [quiz])
 
   const addQuestion = () => {
     setQuestions([
