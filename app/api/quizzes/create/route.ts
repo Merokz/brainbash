@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createAnswer, createNewQuiz, createQuestion, prisma } from '@/lib/db';
 import { getUserFromToken } from "@/lib/auth"
+import { saveBase64Image } from "@/lib/save-image"
 
 
 
@@ -25,10 +26,15 @@ export async function POST(request: Request) {
     if (questions && Array.isArray(questions)) {
       for (let i = 0; i < questions.length; i++) {
         const q = questions[i]
+        let imagePath = null;
 
-        const question = await createQuestion(quiz.id, {
+        if (q.image && q.image.startsWith("data:image/")) {
+          const fileName = `${quiz.id}-${i}`; // or 
+          imagePath = await saveBase64Image(q.image, fileName);
+        }
+          const question = await createQuestion(quiz.id, {
           questionText: q.questionText,
-          image: q.image,
+          image: imagePath,
           orderNum: i,
           questionType: q.questionType
         })

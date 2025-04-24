@@ -10,6 +10,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import logoBanner from "@/public/logo-banner.png";
+import Image from "next/image";
 
 interface DashboardHeaderProps {
   user: {
@@ -36,7 +38,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
       <div className="container flex h-14 items-center">
         <div className="mr-4 flex">
           <Link href="/" className="flex items-center space-x-2">
-            <span className="font-bold text-xl">BrainBash</span>
+            <Image src={logoBanner} alt="Logo" width={180}/>
           </Link>
         </div>
         <div className="flex flex-1 items-center justify-end space-x-4">

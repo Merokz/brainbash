@@ -9,6 +9,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import logo from "@/public/logo.png";
+import Image from "next/image";
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -74,7 +76,8 @@ export default function Register() {
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
+        <CardHeader className="space-y-1 flex flex-col items-center">
+          <Image src={logo} alt="Logo" width={250} height={250} />
           <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
           <CardDescription>Enter your information to create a host account</CardDescription>
         </CardHeader>

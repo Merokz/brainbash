@@ -13,6 +13,8 @@ import {
   softDeleteQuiz
 } from '@/lib/db';
 import { getUserFromToken } from "@/lib/auth"
+import { saveBase64Image } from "@/lib/save-image"
+
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
@@ -81,13 +83,18 @@ export async function PUT(request: Request, { params }: { params: { id: string }
       // Then create or update questions
       for (let i = 0; i < questions.length; i++) {
         const q = questions[i]
-
+        let imagePath = "";
+        
+                if (q.image && q.image.startsWith("data:image/")) {
+                  const fileName = `${quiz.id}-${i}`; // or 
+                  imagePath = await saveBase64Image(q.image, fileName);
+                }
         let question
         if (q.id) {
           // Update existing question
           question = await updateQuestion(q.id, {
             questionText: q.questionText,
-            image: q.image,
+            image: imagePath,
             orderNum: i,
             questionType: q.questionType,
             valid: true,
