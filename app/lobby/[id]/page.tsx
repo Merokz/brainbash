@@ -7,62 +7,110 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { DashboardHeader } from "@/components/dashboard-header"
 import { QRCodeSVG } from "qrcode.react"
 import { Copy, Users } from "lucide-react"
+// Update this import to use the new client-side module
+import { getPusherClient, CHANNELS, EVENTS } from "@/lib/pusher-client"
 
 export default function LobbyPage({ params }: { params: { id: string } }) {
+  // Unwrap params to get the id
+  const { id } = params;
   const [user, setUser] = useState<any>(null)
   const [lobby, setLobby] = useState<any>(null)
   const [participants, setParticipants] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const router = useRouter()
-
+  
   useEffect(() => {
-    // In a real app, we would fetch the user data and lobby data from an API
-    // For now, we'll just simulate it
-    setUser({ username: "Host User" })
-    setLobby({
-      id: params.id,
-      joinCode: "12345",
-      quiz: {
-        title: "Sample Quiz",
-        description: "A sample quiz for demonstration",
-      },
-    })
-    setParticipants([])
-    setLoading(false)
-
-    // In a real app, we would set up a SignalR connection to receive real-time updates
-    // For now, we'll just simulate it with a timer
-    const interval = setInterval(() => {
-      setParticipants((prev) => {
-        // Simulate random participants joining
-        if (Math.random() > 0.7 && prev.length < 10) {
-          const newParticipant = {
-            id: Date.now(),
-            username: `User${prev.length + 1}`,
-            score: 0,
-          }
-          return [...prev, newParticipant]
+    // Fetch user and lobby data from API
+    const fetchData = async () => {
+      try {
+        // Fetch user data
+        const userResponse = await fetch('/api/auth/me')
+        if (userResponse.ok) {
+          const userData = await userResponse.json()
+          setUser(userData)
         }
-        return prev
-      })
-    }, 3000)
 
-    return () => clearInterval(interval)
-  }, [params.id])
+        // Fetch lobby data
+        const lobbyResponse = await fetch(`/api/lobbies/${id}`)
+        if (lobbyResponse.ok) {
+          const lobbyData = await lobbyResponse.json()
+          setLobby(lobbyData)
+          
+          // Also set initial participants
+          if (lobbyData.participants) {
+            setParticipants(lobbyData.participants)
+          }
+        } else {
+          console.error('Failed to fetch lobby data')
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchData()
+    
+    // Get Pusher client using the singleton pattern
+    const pusherClient = getPusherClient()
+    
+    // Set up Pusher channel for real-time updates
+    const channel = pusherClient.subscribe(CHANNELS.lobby(id))
+    
+    // Listen for participants joining
+    channel.bind(EVENTS.PARTICIPANT_JOINED, (data: any) => {
+      setParticipants(prev => {
+        // Check if participant already exists
+        if (prev.some(p => p.id === data.participant.id)) {
+          return prev
+        }
+        return [...prev, data.participant]
+      })
+    })
+    
+    // Listen for participants leaving
+    channel.bind(EVENTS.PARTICIPANT_LEFT, (data: any) => {
+      setParticipants(prev => 
+        prev.filter(p => p.id !== data.participantId)
+      )
+    })
+    
+    // Listen for game start
+    channel.bind(EVENTS.GAME_STARTED, (data: any) => {
+      // Redirect to game host page
+      router.push(`/game-host/${id}`)
+    })
+    
+    return () => {
+      // Clean up Pusher subscription
+      pusherClient.unsubscribe(CHANNELS.lobby(id))
+    }
+  }, [id, router])
 
   const handleCopyJoinCode = () => {
-    navigator.clipboard.writeText(lobby.joinCode)
+    if (lobby && lobby.joinCode) {
+      navigator.clipboard.writeText(lobby.joinCode)
+    }
   }
-
   const handleStartGame = () => {
     // In a real app, we would call an API to start the game
-    router.push(`/game-host/${params.id}`)
+    router.push(`/game-host/${id}`)
   }
 
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
+  if (!lobby || !lobby.quiz) {
+    return (
+      <div className="flex min-h-screen items-center justify-center flex-col">
+        <h2 className="text-2xl font-bold mb-4">Lobby not found</h2>
+        <Button onClick={() => router.push('/dashboard')}>Return to Dashboard</Button>
       </div>
     )
   }

@@ -9,16 +9,20 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
+import { pusherClient, CHANNELS, EVENTS } from "@/lib/pusher-service"
 
 export default function GamePage({ params }: { params: { id: string } }) {
   const [token, setToken] = useState<string | null>(null)
   const [gameState, setGameState] = useState<"waiting" | "question" | "results" | "conclusion">("waiting")
+  const [quiz, setQuiz] = useState<any>(null)
   const [currentQuestion, setCurrentQuestion] = useState<any>(null)
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0)
   const [timeLeft, setTimeLeft] = useState(0)
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>([])
   const [openAnswer, setOpenAnswer] = useState("")
   const [results, setResults] = useState<any>(null)
   const [conclusion, setConclusion] = useState<any>(null)
+  const [submittedAnswer, setSubmittedAnswer] = useState<boolean>(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -34,73 +38,89 @@ export default function GamePage({ params }: { params: { id: string } }) {
 
     setToken(storedToken)
 
-    // In a real app, we would set up a SignalR connection to receive real-time updates
-    // For now, we'll just simulate it
-
-    // Simulate waiting for game to start
-    setTimeout(() => {
-      // Simulate first question
+    // Set up Pusher channels
+    const gameChannel = pusherClient.subscribe(CHANNELS.game(params.id))
+    
+    // Listen for game start
+    gameChannel.bind(EVENTS.GAME_STARTED, (data: any) => {
+      setQuiz(data.quiz)
+      setGameState("waiting") // Wait for the first question
+    })
+    
+    // Listen for new questions
+    gameChannel.bind(EVENTS.QUESTION_STARTED, (data: any) => {
+      setCurrentQuestion(data.question)
+      setCurrentQuestionIndex(data.questionIndex)
+      setTimeLeft(data.timeToAnswer || 30)
+      setSelectedAnswers([])
+      setOpenAnswer("")
+      setSubmittedAnswer(false)
       setGameState("question")
-      setCurrentQuestion({
-        id: 1,
-        questionText: "What is the capital of France?",
-        questionType: "SINGLE_CHOICE",
-        answers: [
-          { id: 1, answerText: "London" },
-          { id: 2, answerText: "Paris" },
-          { id: 3, answerText: "Berlin" },
-          { id: 4, answerText: "Madrid" },
-        ],
-      })
-      setTimeLeft(30)
-
-      // Simulate timer
-      const timer = setInterval(() => {
-        setTimeLeft((prev) => {
+      
+      // Start countdown timer
+      const interval = setInterval(() => {
+        setTimeLeft(prev => {
           if (prev <= 1) {
-            clearInterval(timer)
+            clearInterval(interval)
+            if (!submittedAnswer) {
+              // Auto-submit timeout if no answer was given
+              handleTimedOut()
+            }
             return 0
           }
           return prev - 1
         })
       }, 1000)
-
-      // Simulate question timeout
+      
+      // Clean up timer
+      return () => clearInterval(interval)
+    })
+    
+    // Listen for question ending
+    gameChannel.bind(EVENTS.QUESTION_ENDED, (data: any) => {
+      setGameState("results")
+      setResults({
+        correct: data.correct,
+        correctAnswers: data.correctAnswers,
+        yourAnswers: data.yourAnswers,
+        score: data.score,
+        explanation: data.explanation,
+      })
+      
+      // After a few seconds, go back to waiting for the next question
       setTimeout(() => {
-        clearInterval(timer)
+        if (data.isLastQuestion) {
+          // If it was the last question, wait for the game conclusion
+          // The server will send a GAME_ENDED event
+        } else {
+          setGameState("waiting")
+        }
+      }, 5000)
+    })
+    
+    // Listen for game end
+    gameChannel.bind(EVENTS.GAME_ENDED, (data: any) => {
+      setGameState("conclusion")
+      setConclusion({
+        rank: data.yourRank,
+        score: data.yourScore,
+        totalParticipants: data.totalParticipants,
+        topPlayers: data.topPlayers,
+      })
+    })
+    
+    // Clean up on unmount
+    return () => {
+      pusherClient.unsubscribe(CHANNELS.game(params.id))
+    }
+  }, [params.id, router, submittedAnswer])
 
-        // Show results
-        setGameState("results")
-        setResults({
-          correct: selectedAnswers.includes(2),
-          correctAnswer: "Paris",
-          score: selectedAnswers.includes(2) ? 500 : 0,
-        })
-
-        // Simulate next question or conclusion
-        setTimeout(() => {
-          // For this demo, we'll just show the conclusion
-          setGameState("conclusion")
-          setConclusion({
-            rank: 3,
-            score: 500,
-            totalParticipants: 10,
-            topPlayers: [
-              { username: "Player1", score: 2500 },
-              { username: "Player2", score: 1800 },
-              { username: "You", score: 500 },
-            ],
-          })
-        }, 5000)
-      }, 30000)
-    }, 3000)
-  }, [params.id, router, selectedAnswers])
-
+  // Handle answer selection
   const handleAnswerSelect = (answerId: number) => {
     if (currentQuestion?.questionType === "MULTIPLE_CHOICE") {
       // For multiple choice, toggle the selected answer
       setSelectedAnswers((prev) =>
-        prev.includes(answerId) ? prev.filter((id) => id !== answerId) : [...prev, answerId],
+        prev.includes(answerId) ? prev.filter((id) => id !== answerId) : [...prev, answerId]
       )
     } else {
       // For single choice, replace the selected answer
@@ -108,21 +128,80 @@ export default function GamePage({ params }: { params: { id: string } }) {
     }
   }
 
+  // Handle answer submission
   const handleSubmitAnswer = async () => {
-    // In a real app, we would submit the answer to the server
-    // For now, we'll just simulate it
-
-    if (currentQuestion?.questionType === "OPEN_ENDED") {
-      // Submit open-ended answer
-      console.log("Submitting open-ended answer:", openAnswer)
-    } else {
-      // Submit selected answers
-      console.log("Submitting answers:", selectedAnswers)
+    if (submittedAnswer) return
+    
+    try {
+      setSubmittedAnswer(true)
+      
+      // Prepare the answers data
+      let answerId = null
+      if (currentQuestion?.questionType === "OPEN_ENDED") {
+        // Submit open-ended answer as text
+        // This would be handled differently in a real app
+      } else if (selectedAnswers.length > 0) {
+        // For single choice, use the first (and only) answer
+        if (currentQuestion?.questionType === "SINGLE_CHOICE" || 
+            currentQuestion?.questionType === "TRUE_FALSE") {
+          answerId = selectedAnswers[0]
+        } else {
+          // For multiple choice, we'd need special handling on the server
+          answerId = selectedAnswers[0] // simplified for now
+        }
+      }
+      
+      // Submit the answer to the server
+      const response = await fetch(`/api/lobbies/${params.id}/answer`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          questionId: currentQuestion.id,
+          answerId: answerId,
+          timeToAnswer: 30 - timeLeft,
+          openAnswer: currentQuestion?.questionType === "OPEN_ENDED" ? openAnswer : undefined
+        })
+      })
+      
+      if (!response.ok) {
+        console.error("Failed to submit answer:", await response.text())
+      }
+    } catch (error) {
+      console.error("Error submitting answer:", error)
     }
-
-    // Disable the submit button after submission
-    setSelectedAnswers([])
-    setOpenAnswer("")
+  }
+  
+  // Handle timeout - no answer submitted in time
+  const handleTimedOut = async () => {
+    if (submittedAnswer) return
+    
+    try {
+      setSubmittedAnswer(true)
+      
+      // Submit a timeout to the server
+      const response = await fetch(`/api/lobbies/${params.id}/answer`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          questionId: currentQuestion.id,
+          answerId: null,
+          timeToAnswer: 30,
+          timedOut: true
+        })
+      })
+      
+      if (!response.ok) {
+        console.error("Failed to submit timeout:", await response.text())
+      }
+    } catch (error) {
+      console.error("Error submitting timeout:", error)
+    }
   }
 
   return (
@@ -131,7 +210,7 @@ export default function GamePage({ params }: { params: { id: string } }) {
         {gameState === "waiting" && (
           <Card className="w-full max-w-md">
             <CardContent className="pt-6 text-center py-12">
-              <h2 className="text-2xl font-bold mb-4">Waiting for the host to start the game</h2>
+              <h2 className="text-2xl font-bold mb-4">Waiting for the next question</h2>
               <div className="animate-pulse flex justify-center">
                 <div className="h-4 w-4 bg-primary rounded-full mx-1"></div>
                 <div className="h-4 w-4 bg-primary rounded-full mx-1 animate-pulse delay-150"></div>
@@ -160,9 +239,14 @@ export default function GamePage({ params }: { params: { id: string } }) {
                     value={openAnswer}
                     onChange={(e) => setOpenAnswer(e.target.value)}
                     placeholder="Type your answer here"
+                    disabled={submittedAnswer}
                   />
-                  <Button className="w-full" onClick={handleSubmitAnswer} disabled={!openAnswer.trim()}>
-                    Submit Answer
+                  <Button 
+                    className="w-full" 
+                    onClick={handleSubmitAnswer} 
+                    disabled={!openAnswer.trim() || submittedAnswer}
+                  >
+                    {submittedAnswer ? "Answer Submitted" : "Submit Answer"}
                   </Button>
                 </div>
               ) : currentQuestion.questionType === "SINGLE_CHOICE" || currentQuestion.questionType === "TRUE_FALSE" ? (
@@ -170,18 +254,23 @@ export default function GamePage({ params }: { params: { id: string } }) {
                   <RadioGroup
                     value={selectedAnswers[0]?.toString()}
                     onValueChange={(value) => handleAnswerSelect(Number.parseInt(value))}
+                    disabled={submittedAnswer}
                   >
                     {currentQuestion.answers.map((answer: any) => (
                       <div key={answer.id} className="flex items-center space-x-2 p-3 border rounded-md">
-                        <RadioGroupItem value={answer.id.toString()} id={`answer-${answer.id}`} />
+                        <RadioGroupItem value={answer.id.toString()} id={`answer-${answer.id}`} disabled={submittedAnswer} />
                         <Label htmlFor={`answer-${answer.id}`} className="flex-1 cursor-pointer">
                           {answer.answerText}
                         </Label>
                       </div>
                     ))}
                   </RadioGroup>
-                  <Button className="w-full" onClick={handleSubmitAnswer} disabled={selectedAnswers.length === 0}>
-                    Submit Answer
+                  <Button 
+                    className="w-full" 
+                    onClick={handleSubmitAnswer} 
+                    disabled={selectedAnswers.length === 0 || submittedAnswer}
+                  >
+                    {submittedAnswer ? "Answer Submitted" : "Submit Answer"}
                   </Button>
                 </div>
               ) : (
@@ -192,14 +281,19 @@ export default function GamePage({ params }: { params: { id: string } }) {
                         id={`answer-${answer.id}`}
                         checked={selectedAnswers.includes(answer.id)}
                         onCheckedChange={() => handleAnswerSelect(answer.id)}
+                        disabled={submittedAnswer}
                       />
                       <Label htmlFor={`answer-${answer.id}`} className="flex-1 cursor-pointer">
                         {answer.answerText}
                       </Label>
                     </div>
                   ))}
-                  <Button className="w-full" onClick={handleSubmitAnswer} disabled={selectedAnswers.length === 0}>
-                    Submit Answer
+                  <Button 
+                    className="w-full" 
+                    onClick={handleSubmitAnswer} 
+                    disabled={selectedAnswers.length === 0 || submittedAnswer}
+                  >
+                    {submittedAnswer ? "Answer Submitted" : "Submit Answer"}
                   </Button>
                 </div>
               )}
@@ -214,11 +308,18 @@ export default function GamePage({ params }: { params: { id: string } }) {
                 {results.correct ? "Correct!" : "Incorrect!"}
               </div>
               <div className="mb-4">
-                The correct answer was: <span className="font-bold">{results.correctAnswer}</span>
+                {results.correctAnswers && (
+                  <>
+                    The correct answer was: <span className="font-bold">{results.correctAnswers.map((a: any) => a.answerText).join(", ")}</span>
+                  </>
+                )}
               </div>
               <div className="text-xl">
                 You earned <span className="font-bold">{results.score}</span> points
               </div>
+              {results.explanation && (
+                <div className="mt-4 text-sm text-muted-foreground">{results.explanation}</div>
+              )}
               <div className="mt-6 text-sm text-muted-foreground">Next question coming up...</div>
             </CardContent>
           </Card>
@@ -245,10 +346,10 @@ export default function GamePage({ params }: { params: { id: string } }) {
                 {conclusion.topPlayers.map((player: any, index: number) => (
                   <div
                     key={index}
-                    className={`p-3 border rounded-md flex justify-between items-center ${player.username === "You" ? "bg-muted" : ""}`}
+                    className={`p-3 border rounded-md flex justify-between items-center ${player.isYou ? "bg-muted" : ""}`}
                   >
                     <div className="font-medium">
-                      {index + 1}. {player.username}
+                      {index + 1}. {player.username} {player.isYou && "(You)"}
                     </div>
                     <div>{player.score} points</div>
                   </div>

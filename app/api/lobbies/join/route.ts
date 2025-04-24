@@ -1,57 +1,79 @@
-import { NextResponse } from "next/server"
-import { PrismaClient } from "@prisma/client"
-import { getUserFromToken, createParticipantToken } from "@/lib/auth"
-import { getLobbyByJoinCode, addParticipantToLobby, updateParticipantToken } from "@/lib/db"
+import { NextRequest, NextResponse } from "next/server";
+import { addParticipantToLobby, getLobbyByJoinCode, updateParticipantToken } from "@/lib/db";
+import { createParticipantToken, getUserFromToken } from "@/lib/auth";
+import { pusherServer, CHANNELS, EVENTS } from "@/lib/pusher-service";
 
-const prisma = new PrismaClient()
-
-export async function POST(request: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const { joinCode, username } = await request.json()
+    const { joinCode, username } = await req.json();
 
-    // Find lobby
-    const lobby = await getLobbyByJoinCode(joinCode)
+    if (!joinCode || !username) {
+      return NextResponse.json(
+        { error: "Join code and username are required" },
+        { status: 400 }
+      );
+    }
 
+    // Get the lobby by join code
+    const lobby = await getLobbyByJoinCode(joinCode);
     if (!lobby) {
-      return NextResponse.json({ error: "Invalid join code" }, { status: 404 })
+      return NextResponse.json({ error: "Lobby not found" }, { status: 404 });
     }
 
-    if (lobby.state === "CONCLUDED") {
-      return NextResponse.json({ error: "This game has already ended" }, { status: 400 })
+    // Check if the game is still in the lobby state
+    if (lobby.state !== "IN_LOBBY") {
+      return NextResponse.json(
+        { error: "Game has already started or ended" },
+        { status: 400 }
+      );
     }
 
-    // Check if username is already taken in this lobby
-    const existingParticipant = await prisma.participant.findFirst({
-      where: {
-        lobbyId: lobby.id,
-        username,
-        valid: true,
-      },
-    })
+    // Get the current user if they're logged in
+    const user = await getUserFromToken();
+    const userId = user ? user.id : undefined;
 
-    if (existingParticipant) {
-      return NextResponse.json({ error: "Username already taken in this lobby" }, { status: 400 })
-    }
+    // Create a participant
+    const participant = await addParticipantToLobby(
+      lobby.id,
+      username,
+      userId
+    );
 
-    // Get current user (if logged in)
-    const user = await getUserFromToken()
+    // Create a participant token
+    const token = await createParticipantToken(participant.id, lobby.id);
 
-    // Add participant to lobby
-    const participant = await addParticipantToLobby(lobby.id, username, user?.id)
+    // Update the participant with the token
+    await updateParticipantToken(participant.id, token);
 
-    // Create participant token
-    const token = await createParticipantToken(participant.id, lobby.id)
-
-    // Update participant with token
-    await updateParticipantToken(participant.id, token)
+    // Notify all clients in the lobby that a new participant has joined
+    await pusherServer.trigger(
+      CHANNELS.lobby(lobby.id.toString()),
+      EVENTS.PARTICIPANT_JOINED,
+      {
+        participant: {
+          id: participant.id,
+          username: participant.username,
+          score: participant.score,
+        },
+      }
+    );
 
     return NextResponse.json({
       token,
       participant,
-      lobby,
-    })
+      lobby: {
+        id: lobby.id,
+        joinCode: lobby.joinCode,
+        quiz: {
+          title: lobby.quiz.title,
+        },
+      },
+    });
   } catch (error) {
-    console.error("Error joining lobby:", error)
-    return NextResponse.json({ error: "Failed to join lobby" }, { status: 500 })
+    console.error("Error joining lobby:", error);
+    return NextResponse.json(
+      { error: "Failed to join lobby" },
+      { status: 500 }
+    );
   }
 }

@@ -1,9 +1,9 @@
-import { PrismaClient } from "@prisma/client"
+import { prisma } from '@/lib/db';
 import { compare, hash } from "bcrypt"
 import { SignJWT, jwtVerify } from "jose"
 import { cookies } from "next/headers"
 
-const prisma = new PrismaClient()
+
 const SECRET_KEY = new TextEncoder().encode(process.env.JWT_SECRET || "default-secret-key-change-in-production")
 
 export async function hashPassword(password: string): Promise<string> {

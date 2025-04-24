@@ -1,93 +1,62 @@
-import { NextResponse } from "next/server"
-import { PrismaClient } from "@prisma/client"
-import { getParticipantFromToken } from "@/lib/auth"
-import { recordParticipantAnswer } from "@/lib/db"
+import { NextRequest, NextResponse } from "next/server";
+import { recordParticipantAnswer } from "@/lib/db";
+import { getParticipantFromToken } from "@/lib/auth";
+import { pusherServer, CHANNELS, EVENTS } from "@/lib/pusher-service";
 
-const prisma = new PrismaClient()
-
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const lobbyId = Number.parseInt(params.id)
-
-    if (isNaN(lobbyId)) {
-      return NextResponse.json({ error: "Invalid lobby ID" }, { status: 400 })
+    // Get the participant token from the authorization header
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const { token, questionId, answerId, timeToAnswer } = await request.json()
-
-    if (!token) {
-      return NextResponse.json({ error: "Missing participant token" }, { status: 400 })
+    
+    const token = authHeader.substring(7);
+    const participant = await getParticipantFromToken(token);
+    
+    if (!participant || participant.lobbyId !== Number(params.id)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    // Verify participant
-    const participant = await getParticipantFromToken(token)
-
-    if (!participant || participant.lobbyId !== lobbyId) {
-      return NextResponse.json({ error: "Invalid participant token" }, { status: 401 })
+    
+    const { questionId, answerId, timeToAnswer } = await req.json();
+    
+    if (!questionId || timeToAnswer === undefined) {
+      return NextResponse.json(
+        { error: "Question ID and time to answer are required" },
+        { status: 400 }
+      );
     }
-
-    if (participant.lobby.state !== "IN_GAME") {
-      return NextResponse.json({ error: "Game is not in progress" }, { status: 400 })
-    }
-
-    // Check if participant has already answered this question
-    const existingAnswer = await prisma.participantAnswer.findFirst({
-      where: {
+    
+    // Record the answer
+    const participantAnswer = await recordParticipantAnswer(
+      participant.id,
+      questionId,
+      answerId,
+      timeToAnswer
+    );
+    
+    // Notify the host about the submitted answer
+    await pusherServer.trigger(
+      CHANNELS.lobby(params.id),
+      EVENTS.ANSWER_SUBMITTED,
+      {
         participantId: participant.id,
+        participantUsername: participant.username,
         questionId,
-        valid: true,
-      },
-    })
-
-    if (existingAnswer) {
-      return NextResponse.json({ error: "You have already answered this question" }, { status: 400 })
-    }
-
-    // Record answer
-    const answer = await recordParticipantAnswer(participant.id, questionId, answerId, timeToAnswer)
-
-    // Check if answer is correct and update score
-    if (answerId) {
-      const correctAnswer = await prisma.answer.findFirst({
-        where: {
-          questionId,
-          isCorrect: true,
-          valid: true,
-        },
-      })
-
-      if (correctAnswer && correctAnswer.id === answerId) {
-        // Calculate score based on time to answer
-        // Faster answers get more points
-        const maxScore = 1000
-        const timeLimit = participant.lobby.timeToAnswer
-        const score = Math.max(0, Math.floor(maxScore * (1 - timeToAnswer / (timeLimit * 1000))))
-
-        // Update participant score
-        await prisma.participant.update({
-          where: { id: participant.id },
-          data: {
-            score: {
-              increment: score,
-            },
-          },
-        })
-
-        return NextResponse.json({
-          correct: true,
-          score,
-          answer,
-        })
+        answerId,
+        timeToAnswer,
       }
-    }
-
-    return NextResponse.json({
-      correct: false,
-      score: 0,
-      answer,
-    })
+    );
+    
+    return NextResponse.json({ 
+      success: true,
+      participantAnswer 
+    });
   } catch (error) {
-    console.error("Error submitting answer:", error)
-    return NextResponse.json({ error: "Failed to submit answer" }, { status: 500 })
+    console.error("Error submitting answer:", error);
+    return NextResponse.json(
+      { error: "Failed to submit answer" },
+      { status: 500 }
+    );
   }
 }

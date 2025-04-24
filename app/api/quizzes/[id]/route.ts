@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server"
-import { PrismaClient } from "@prisma/client"
+import { prisma } from '@/lib/db';
 import { getUserFromToken } from "@/lib/auth"
 import { getQuizById } from "@/lib/db"
 import { saveBase64Image } from "@/lib/save-image"
 
-const prisma = new PrismaClient()
+
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {

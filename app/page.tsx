@@ -8,7 +8,7 @@ import logoBanner from "@/public/logo-banner.png";
 import Image from "next/image";
 
 export default async function Home() {
-  const user = await getUserFromToken()
+  const user = await getUserFromToken();
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -46,7 +46,7 @@ export default async function Home() {
         <HomeHero user={user} />
         <div className="container py-8 grid md:grid-cols-2 gap-8">
           <PublicLobbies />
-          <JoinPrivateGame/>
+          <JoinPrivateGame />
         </div>
       </main>
       <footer className="border-t py-6 md:py-0">
@@ -57,9 +57,5 @@ export default async function Home() {
         </div>
       </footer>
     </div>
-    // <CreateQuizPreview />
-    // <DashboardPreview />
-    // <GameHostPreview />
-    // <GamePreview />
   )
 }
