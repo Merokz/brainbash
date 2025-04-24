@@ -14,11 +14,11 @@ export async function POST(request: Request) {
     }
 
     const { title, description, isPublic, questions } = await request.json()
-  
+
     const quiz = await createNewQuiz(
-      user.id, 
-      title, 
-      description, 
+      user.id,
+      title,
+      description,
       isPublic
     );
 
@@ -26,13 +26,14 @@ export async function POST(request: Request) {
     if (questions && Array.isArray(questions)) {
       for (let i = 0; i < questions.length; i++) {
         const q = questions[i]
-        let imagePath = null;
+        let imagePath = "";
 
         if (q.image && q.image.startsWith("data:image/")) {
           const fileName = `${quiz.id}-${i}`; // or 
           imagePath = await saveBase64Image(q.image, fileName);
         }
-          const question = await createQuestion(quiz.id, {
+
+        const question = await createQuestion(quiz.id, {
           questionText: q.questionText,
           image: imagePath,
           orderNum: i,
