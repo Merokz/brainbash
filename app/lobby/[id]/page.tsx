@@ -12,7 +12,7 @@ import { use } from "react"
 
 export default function LobbyPage({ params }: { params: { id: string } }) {
   // Unwrap params to get the id
-  const id = params.id
+  const { id } = params;
   const [user, setUser] = useState<any>(null)
   const [lobby, setLobby] = useState<any>(null)
   const [participants, setParticipants] = useState<any[]>([])
