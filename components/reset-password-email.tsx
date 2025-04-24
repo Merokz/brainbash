@@ -1,38 +1,32 @@
 import * as React from "react";
-import { Html, Text, Button, Heading } from "@react-email/components";
+import { Text } from "@react-email/components";
+import { Layout } from "./email-layout";
+import { Header } from "./email-header";
+import { Footer } from "./email-footer";
+import { PrimaryButton } from "./email-button";
+import { theme } from "./email-theme";
 
 interface ResetPasswordEmailProps {
   email: string;
   resetLink: string;
 }
 
-export const ResetPasswordEmail: React.FC<ResetPasswordEmailProps> = ({
-  email,
-  resetLink,
-}) => {
-  return (
-    <Html lang="en">
-      <Heading as="h2">Password Reset Request</Heading>
-      <Text>Hi there,</Text>
-      <Text>
-        A password reset was requested for <strong>{email}</strong>. Click the
-        button below to reset your password.
-      </Text>
-      <Button
-        href={resetLink}
-        style={{
-          backgroundColor: "#4F46E5",
-          color: "#fff",
-          padding: "10px 20px",
-          borderRadius: "5px",
-          textDecoration: "none",
-        }}
-      >
-        Reset Password
-      </Button>
-      <Text>If you didn’t request this, you can ignore this email.</Text>
-    </Html>
-  );
-};
+export const ResetPasswordEmail: React.FC<ResetPasswordEmailProps> = ({ email, resetLink }) => (
+  <Layout>
+    <Header />
+    <Text style={{ color: theme.colors.text, textAlign: "center" }}>
+      We received a request to reset the password associated with <strong>{email}</strong>.
+    </Text>
+
+    <div style={{ textAlign: "center", marginTop: "20px" }}>
+      <PrimaryButton href={resetLink}>Reset Your Password</PrimaryButton>
+    </div>
+
+    <Text style={{ color: theme.colors.muted, textAlign: "center" }}>
+      If you did not request this, you can safely ignore this email.
+    </Text>
+    <Footer />
+  </Layout>
+);
 
 export default ResetPasswordEmail;
