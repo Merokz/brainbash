@@ -1,6 +1,34 @@
-import { PrismaClient } from "@prisma/client"
+import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient()
+// Prevent multiple instances of Prisma Client in development
+declare global {
+  var prisma: PrismaClient | undefined;
+}
+
+// Connection pooling configuration
+const prismaClientSingleton = () => {
+  const prisma = new PrismaClient({
+    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+    datasources: {
+      db: {
+        url: process.env.DATABASE_URL,
+      },
+    },
+  });
+  return prisma;
+};
+
+export const prisma = global.prisma || prismaClientSingleton();
+
+if (process.env.NODE_ENV === 'development') {
+  global.prisma = prisma;
+}
+
+if (process.env.NODE_ENV !== 'development') {
+  process.on('beforeExit', async () => {
+    await prisma.$disconnect();
+  });
+}
 
 // Quiz functions
 export async function getPublicQuizzes() {

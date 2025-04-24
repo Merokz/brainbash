@@ -1,5 +1,4 @@
 import Pusher from 'pusher';
-import PusherClient from 'pusher-js';
 
 // Server-side Pusher instance
 export const pusherServer = new Pusher({
@@ -9,29 +8,6 @@ export const pusherServer = new Pusher({
   cluster: process.env.PUSHER_CLUSTER || "eu",
   useTLS: true
 });
-
-// Client-side Pusher instance
-export const pusherClient = new PusherClient(
-  process.env.NEXT_PUBLIC_PUSHER_KEY || "e71affa9b3e272313888", 
-  {
-    cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER || "eu",
-    authEndpoint: '/api/pusher/auth', // Use the API route path
-    auth: {
-      headers: {
-        // Include authorization header for participant authentication
-        get authorization() {
-          // Use try-catch to handle cases where localStorage isn't available
-          try {
-            const token = localStorage.getItem('participant_token');
-            return token ? `Bearer ${token}` : '';
-          } catch (e) {
-            return '';
-          }
-        }
-      }
-    }
-  }
-);
 
 // Event names - centralizing these to avoid string duplication
 export const EVENTS = {

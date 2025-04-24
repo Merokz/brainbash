@@ -7,8 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { DashboardHeader } from "@/components/dashboard-header"
 import { QRCodeSVG } from "qrcode.react"
 import { Copy, Users } from "lucide-react"
-import { pusherClient, CHANNELS, EVENTS } from "@/lib/pusher-service"
-import { use } from "react"
+// Update this import to use the new client-side module
+import { getPusherClient, CHANNELS, EVENTS } from "@/lib/pusher-client"
 
 export default function LobbyPage({ params }: { params: { id: string } }) {
   // Unwrap params to get the id
@@ -18,6 +18,7 @@ export default function LobbyPage({ params }: { params: { id: string } }) {
   const [participants, setParticipants] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const router = useRouter()
+  
   useEffect(() => {
     // Fetch user and lobby data from API
     const fetchData = async () => {
@@ -50,6 +51,9 @@ export default function LobbyPage({ params }: { params: { id: string } }) {
     }
     
     fetchData()
+    
+    // Get Pusher client using the singleton pattern
+    const pusherClient = getPusherClient()
     
     // Set up Pusher channel for real-time updates
     const channel = pusherClient.subscribe(CHANNELS.lobby(id))

@@ -1,7 +1,7 @@
-import { PrismaClient } from "@prisma/client"
+import { prisma } from '@/lib/db';
 import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr"
 
-const prisma = new PrismaClient()
+
 
 // This would be used on the server-side to manage connections
 export class QuizHub {
