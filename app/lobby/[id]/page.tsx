@@ -88,9 +88,11 @@ export default function LobbyPage() {
   }, [params.id, router])
 
   const handleCopyJoinCode = () => {
-    if (lobby && lobby.joinCode) {
-      navigator.clipboard.writeText(lobby.joinCode)
-    }
+    useEffect(() => {  
+      if (lobby && lobby.joinCode) {
+        navigator.clipboard.writeText(lobby.joinCode)
+      }
+    }, []);
   }
   const handleStartGame = async () => {
     try {
