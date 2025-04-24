@@ -2,16 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { getLobbyById } from "@/lib/db";
 import { getUserFromToken } from "@/lib/auth";
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    // We'll allow accessing the lobby even without authentication
-    // but we'll include user info if they're authenticated
-    
-    // In Next.js App Router, params should be properly accessed
-    const { id } = await params;
-
     const user = await getUserFromToken();
-    const lobbyId = Number(id);
+    const lobbyId = Number(params.id);
     if (isNaN(lobbyId)) {
       return NextResponse.json({ error: "Invalid lobby ID" }, { status: 400 });
     }

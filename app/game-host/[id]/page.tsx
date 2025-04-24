@@ -89,7 +89,10 @@ export default function GameHostPage() {
     
     // Handle answers submitted
     gameChannel.bind(EVENTS.ANSWER_SUBMITTED, (data: any) => {
-      setParticipantAnswers(prev => [...prev, data]);
+      setParticipantAnswers(prev => [...prev, {
+        ...data,
+        timestamp: Date.now()  // Add timestamp for sorting
+      }]);
       
       // Update participant score
       setParticipants(prev => 
@@ -389,6 +392,21 @@ export default function GameHostPage() {
                         </div>
                       );
                     })}
+                  </div>
+
+                  <h3 className="text-lg font-bold mb-2">Participant Scores</h3>
+                  <div className="space-y-2 mb-4">
+                    {participantAnswers
+                      .filter(pa => pa.questionId === quiz.questions[currentQuestionIndex].id)
+                      .sort((a, b) => b.pointsEarned - a.pointsEarned)
+                      .map((pa, idx) => (
+                        <div key={pa.participantId} className="p-2 border rounded-md flex justify-between">
+                          <span>{pa.participantUsername}</span>
+                          <span className={pa.isCorrect ? "text-green-600 font-bold" : "text-red-600"}>
+                            {pa.isCorrect ? `+${pa.pointsEarned} points` : "Wrong answer"}
+                          </span>
+                        </div>
+                      ))}
                   </div>
 
                   <div className="flex justify-end">

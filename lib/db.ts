@@ -432,3 +432,141 @@ export async function createNewQuiz(creatorId: number, title: string, descriptio
     },
   });
 }
+
+// Calculate and update participant score
+export async function calculateAndUpdateScore(
+  participantId: number,
+  questionId: number,
+  answerId: number | null,
+  timeToAnswer: number,
+  timedOut: boolean = false
+) {
+  // Get the question details including correct answers
+  const question = await prisma.question.findUnique({
+    where: { id: questionId },
+    include: {
+      answers: { where: { valid: true } },
+    },
+  });
+
+  if (!question) return { newScore: 0, pointsEarned: 0, isCorrect: false };
+
+  // Get all answers for this question to determine position
+  const allAnswers = await prisma.participantAnswer.findMany({
+    where: { 
+      questionId,
+      valid: true,
+    },
+    orderBy: { createdAt: 'asc' },
+  });
+
+  // Find position (1-based index)
+  const position = allAnswers.findIndex(a => a.participantId === participantId) + 1;
+
+  // Get total participants for this question's lobby
+  const participant = await prisma.participant.findUnique({
+    where: { id: participantId },
+    include: { lobby: true },
+  });
+
+  if (!participant) return { newScore: 0, pointsEarned: 0, isCorrect: false };
+
+  const totalParticipants = await prisma.participant.count({
+    where: { 
+      lobbyId: participant.lobbyId,
+      valid: true,
+    },
+  });
+
+  // Get the max time allowed for the question from the lobby
+  const maxTime = participant.lobby.timeToAnswer || 30; // Default to 30 seconds
+  
+  // If the participant timed out, they get 0 points
+  if (timedOut || !answerId) {
+    // Update participant with zero score increment for this answer
+    const updatedParticipant = await prisma.participant.update({
+      where: { id: participantId },
+      data: {
+        score: {
+          increment: 0,
+        },
+      },
+    });
+
+    return {
+      newScore: updatedParticipant.score,
+      pointsEarned: 0,
+      isCorrect: false,
+    };
+  }
+
+  // Calculate base score
+  let score = 0;
+  
+  // Check if the answer is correct
+  const submittedAnswer = question.answers.find(a => a.id === answerId);
+  const correctAnswers = question.answers.filter(a => a.isCorrect);
+  
+  if (submittedAnswer && submittedAnswer.isCorrect) {
+    // Time factor: Less time = more points (up to 80% of max points)
+    const timeFactor = Math.max(0, 1 - (timeToAnswer / maxTime));
+    
+    // Position factor: Earlier position = more points (up to 15% bonus)
+    const positionFactor = Math.max(0, 1 - ((position - 1) / totalParticipants));
+    
+    // Participant count factor: More participants = slightly more points
+    const participantFactor = 0.05 * Math.min(1, totalParticipants / 10);
+    
+    // Calculate final score (max 1000 points)
+    score = Math.round(
+      1000 * (0.8 * timeFactor + 0.15 * positionFactor + participantFactor)
+    );
+  } else if (question.questionType === "MULTIPLE_CHOICE" && submittedAnswer) {
+    // Time factor defined for multiple choice questions
+    const timeFactor = Math.max(0, 1 - (timeToAnswer / maxTime));
+    
+    // For multiple choice, give partial credit based on how many they got right
+    // This is simplified - in a real app you'd need to track all selected answers
+    score = Math.round(500 * timeFactor);
+  }
+
+  // Update participant's score
+  const updatedParticipant = await prisma.participant.update({
+    where: { id: participantId },
+    data: {
+      score: {
+        increment: score,
+      },
+    },
+  });
+
+  return {
+    newScore: updatedParticipant.score,
+    pointsEarned: score,
+    isCorrect: submittedAnswer?.isCorrect || false,
+  };
+}
+
+// This is a suggested addition to properly handle multiple-choice questions
+export async function recordMultipleAnswers(
+  participantId: number,
+  questionId: number,
+  answerIds: number[],
+  timeToAnswer: number
+) {
+  // Create multiple participant answer records
+  const answers = await Promise.all(
+    answerIds.map(answerId => 
+      prisma.participantAnswer.create({
+        data: {
+          participantId,
+          questionId,
+          answerId,
+          timeToAnswer,
+        },
+      })
+    )
+  );
+  
+  return answers;
+}
