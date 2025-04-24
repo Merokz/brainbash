@@ -93,9 +93,20 @@ export default function LobbyPage({ params }: { params: { id: string } }) {
       navigator.clipboard.writeText(lobby.joinCode)
     }
   }
-  const handleStartGame = () => {
-    // In a real app, we would call an API to start the game
-    router.push(`/game-host/${id}`)
+  const handleStartGame = async () => {
+    try {
+      // Call the API to start the game
+      const response = await fetch(`/api/lobbies/${id}/start`, {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        console.error("Failed to start game:", await response.text());
+      }
+      // Pusher will handle the redirect via the GAME_STARTED event
+    } catch (error) {
+      console.error("Error starting game:", error);
+    }
   }
 
   if (loading) {

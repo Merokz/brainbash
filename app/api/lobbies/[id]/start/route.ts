@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { startGame, getQuizById } from "@/lib/db";
+import { startGame, getQuizById, getLobbyById } from "@/lib/db";
 import { getUserFromToken } from "@/lib/auth";
 import { pusherServer, CHANNELS, EVENTS } from "@/lib/pusher-service";
 
@@ -11,6 +11,16 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
 
     const lobbyId = Number(params.id);
+    
+    // Get the lobby to check if the user is the host
+    const lobby = await getLobbyById(lobbyId);
+    if (!lobby) {
+      return NextResponse.json({ error: "Lobby not found" }, { status: 404 });
+    }
+    
+    if (lobby.hostId !== user.id) {
+      return NextResponse.json({ error: "Only the host can start the game" }, { status: 403 });
+    }
     
     // Start the game in the database
     const updatedLobby = await startGame(lobbyId);

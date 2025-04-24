@@ -1,9 +1,18 @@
+// filepath: c:\dev\brainbash\app\api\quizzes\[id]\route.ts
 import { NextResponse } from "next/server"
-import { prisma } from '@/lib/db';
+import { 
+  findQuizById, 
+  updateQuiz, 
+  invalidateQuestionsForQuiz, 
+  updateQuestion, 
+  createQuestion, 
+  invalidateAnswersForQuestion, 
+  updateAnswer, 
+  createAnswer, 
+  getQuizById,
+  softDeleteQuiz
+} from '@/lib/db';
 import { getUserFromToken } from "@/lib/auth"
-import { getQuizById } from "@/lib/db"
-
-
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
@@ -49,9 +58,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const quiz = await prisma.quiz.findUnique({
-      where: { id: quizId },
-    })
+    const quiz = await findQuizById(quizId)
 
     if (!quiz) {
       return NextResponse.json({ error: "Quiz not found" }, { status: 404 })
@@ -64,22 +71,12 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     const { title, description, isPublic, questions } = await request.json()
 
     // Update quiz
-    const updatedQuiz = await prisma.quiz.update({
-      where: { id: quizId },
-      data: {
-        title,
-        description,
-        isPublic,
-      },
-    })
+    const updatedQuiz = await updateQuiz(quizId, title, description, isPublic)
 
     // Update questions and answers
     if (questions && Array.isArray(questions)) {
       // First, mark all existing questions as invalid
-      await prisma.question.updateMany({
-        where: { quizId },
-        data: { valid: false },
-      })
+      await invalidateQuestionsForQuiz(quizId)
 
       // Then create or update questions
       for (let i = 0; i < questions.length; i++) {
@@ -88,56 +85,41 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         let question
         if (q.id) {
           // Update existing question
-          question = await prisma.question.update({
-            where: { id: q.id },
-            data: {
-              questionText: q.questionText,
-              image: q.image,
-              orderNum: i,
-              questionType: q.questionType,
-              valid: true,
-            },
+          question = await updateQuestion(q.id, {
+            questionText: q.questionText,
+            image: q.image,
+            orderNum: i,
+            questionType: q.questionType,
+            valid: true,
           })
         } else {
           // Create new question
-          question = await prisma.question.create({
-            data: {
-              quizId,
-              questionText: q.questionText,
-              image: q.image,
-              orderNum: i,
-              questionType: q.questionType,
-            },
+          question = await createQuestion(quizId, {
+            questionText: q.questionText,
+            image: q.image,
+            orderNum: i,
+            questionType: q.questionType,
           })
         }
 
         // Mark all existing answers as invalid
-        await prisma.answer.updateMany({
-          where: { questionId: question.id },
-          data: { valid: false },
-        })
+        await invalidateAnswersForQuestion(question.id)
 
         // Create or update answers
         if (q.answers && Array.isArray(q.answers)) {
           for (const a of q.answers) {
             if (a.id) {
               // Update existing answer
-              await prisma.answer.update({
-                where: { id: a.id },
-                data: {
-                  answerText: a.answerText,
-                  isCorrect: a.isCorrect,
-                  valid: true,
-                },
+              await updateAnswer(a.id, {
+                answerText: a.answerText,
+                isCorrect: a.isCorrect,
+                valid: true,
               })
             } else {
               // Create new answer
-              await prisma.answer.create({
-                data: {
-                  questionId: question.id,
-                  answerText: a.answerText,
-                  isCorrect: a.isCorrect,
-                },
+              await createAnswer(question.id, {
+                answerText: a.answerText,
+                isCorrect: a.isCorrect,
               })
             }
           }
@@ -166,9 +148,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const quiz = await prisma.quiz.findUnique({
-      where: { id: quizId },
-    })
+    const quiz = await findQuizById(quizId)
 
     if (!quiz) {
       return NextResponse.json({ error: "Quiz not found" }, { status: 404 })
@@ -179,10 +159,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     }
 
     // Soft delete the quiz
-    await prisma.quiz.update({
-      where: { id: quizId },
-      data: { valid: false },
-    })
+    await softDeleteQuiz(quizId)
 
     return NextResponse.json({ success: true })
   } catch (error) {
