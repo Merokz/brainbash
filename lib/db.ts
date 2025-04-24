@@ -115,7 +115,7 @@ export async function getLobbyByJoinCode(joinCode: string) {
 
 export async function createLobby(quizId: number, hostId: number, isPublic: boolean) {
   // Generate a unique 5-digit join code
-  let joinCode
+  let joinCode = "00000"
   let isUnique = false
 
   while (!isUnique) {

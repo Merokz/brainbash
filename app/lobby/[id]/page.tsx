@@ -1,43 +1,86 @@
 "use client"
 
-import { useState, useEffect, SetStateAction } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { DashboardHeader } from "@/components/dashboard-header"
 import { QRCodeSVG } from "qrcode.react"
 import { Copy, Users } from "lucide-react"
-import io from "socket.io-client"
+import { pusherClient, CHANNELS, EVENTS } from "@/lib/pusher-service"
 
 export default function LobbyPage({ params }: { params: { id: string } }) {
-  const [user, setUser] = useState<any>(null);
-  const [lobby, setLobby] = useState<any>(null);
-  const [participants, setParticipants] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const isHost = searchParams.get("host") === "1";
+  const [user, setUser] = useState<any>(null)
+  const [lobby, setLobby] = useState<any>(null)
+  const [participants, setParticipants] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
 
   useEffect(() => {
-    // TODO: Fetch real user and lobby data here
-    setLoading(false);
+    // Fetch user and lobby data from API
+    const fetchData = async () => {
+      try {
+        // Fetch user data
+        const userResponse = await fetch('/api/auth/me')
+        if (userResponse.ok) {
+          const userData = await userResponse.json()
+          setUser(userData)
+        }
 
-    const socket = io();
-    if (isHost) {
-      socket.emit("join-lobby-host", { lobbyId: params.id });
-    } else {
-      // TODO: Replace with real user info
-      const participant = { id: socket.id, username: `User-${socket.id.substring(0, 5)}` };
-      setUser(participant);
-      socket.emit("join-lobby", { lobbyId: params.id, participant });
+        // Fetch lobby data
+        const lobbyResponse = await fetch(`/api/lobbies/${params.id}`)
+        if (lobbyResponse.ok) {
+          const lobbyData = await lobbyResponse.json()
+          setLobby(lobbyData)
+          
+          // Also set initial participants
+          if (lobbyData.participants) {
+            setParticipants(lobbyData.participants)
+          }
+        } else {
+          console.error('Failed to fetch lobby data')
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error)
+      } finally {
+        setLoading(false)
+      }
     }
-    socket.on("participants-update", (updatedParticipants: SetStateAction<any[]>) => {
-      setParticipants(updatedParticipants);
-    });
+    
+    fetchData()
+    
+    // Set up Pusher channel for real-time updates
+    const channel = pusherClient.subscribe(CHANNELS.lobby(params.id))
+    
+    // Listen for participants joining
+    channel.bind(EVENTS.PARTICIPANT_JOINED, (data: any) => {
+      setParticipants(prev => {
+        // Check if participant already exists
+        if (prev.some(p => p.id === data.participant.id)) {
+          return prev
+        }
+        return [...prev, data.participant]
+      })
+    })
+    
+    // Listen for participants leaving
+    channel.bind(EVENTS.PARTICIPANT_LEFT, (data: any) => {
+      setParticipants(prev => 
+        prev.filter(p => p.id !== data.participantId)
+      )
+    })
+    
+    // Listen for game start
+    channel.bind(EVENTS.GAME_STARTED, (data: any) => {
+      // Redirect to game host page
+      router.push(`/game-host/${params.id}`)
+    })
+    
     return () => {
-      socket.disconnect();
-    };
-  }, [params.id, isHost])
+      // Clean up Pusher subscription
+      pusherClient.unsubscribe(CHANNELS.lobby(params.id))
+    }
+  }, [params.id, router])
 
   const handleCopyJoinCode = () => {
     navigator.clipboard.writeText(lobby.joinCode)
