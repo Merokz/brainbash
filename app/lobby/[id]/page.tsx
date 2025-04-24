@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { DashboardHeader } from "@/components/dashboard-header"
@@ -10,9 +10,8 @@ import { Copy, Users } from "lucide-react"
 // Update this import to use the new client-side module
 import { getPusherClient, CHANNELS, EVENTS } from "@/lib/pusher-client"
 
-export default function LobbyPage({ params }: { params: { id: string } }) {
-  // Unwrap params to get the id
-  const { id } = params;
+export default function LobbyPage() {
+  const params = useParams<{ id: string }>();
   const [user, setUser] = useState<any>(null)
   const [lobby, setLobby] = useState<any>(null)
   const [participants, setParticipants] = useState<any[]>([])
@@ -31,7 +30,7 @@ export default function LobbyPage({ params }: { params: { id: string } }) {
         }
 
         // Fetch lobby data
-        const lobbyResponse = await fetch(`/api/lobbies/${id}`)
+        const lobbyResponse = await fetch(`/api/lobbies/${params.id}`)
         if (lobbyResponse.ok) {
           const lobbyData = await lobbyResponse.json()
           setLobby(lobbyData)
@@ -56,7 +55,7 @@ export default function LobbyPage({ params }: { params: { id: string } }) {
     const pusherClient = getPusherClient()
     
     // Set up Pusher channel for real-time updates
-    const channel = pusherClient.subscribe(CHANNELS.lobby(id))
+    const channel = pusherClient.subscribe(CHANNELS.lobby(params.id))
     
     // Listen for participants joining
     channel.bind(EVENTS.PARTICIPANT_JOINED, (data: any) => {
@@ -79,14 +78,14 @@ export default function LobbyPage({ params }: { params: { id: string } }) {
     // Listen for game start
     channel.bind(EVENTS.GAME_STARTED, (data: any) => {
       // Redirect to game host page
-      router.push(`/game-host/${id}`)
+      router.push(`/game-host/${params.id}`)
     })
     
     return () => {
       // Clean up Pusher subscription
-      pusherClient.unsubscribe(CHANNELS.lobby(id))
+      pusherClient.unsubscribe(CHANNELS.lobby(params.id))
     }
-  }, [id, router])
+  }, [params.id, router])
 
   const handleCopyJoinCode = () => {
     if (lobby && lobby.joinCode) {
@@ -96,7 +95,7 @@ export default function LobbyPage({ params }: { params: { id: string } }) {
   const handleStartGame = async () => {
     try {
       // Call the API to start the game
-      const response = await fetch(`/api/lobbies/${id}/start`, {
+      const response = await fetch(`/api/lobbies/${params.id}/start`, {
         method: "POST",
       });
 

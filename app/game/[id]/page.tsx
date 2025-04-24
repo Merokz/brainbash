@@ -1,5 +1,6 @@
 "use client"
 
+import { useParams } from 'next/navigation'
 import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -11,8 +12,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { getPusherClient, CHANNELS, EVENTS } from "@/lib/pusher-client"
 
-export default function GamePage({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default function GamePage() {
+  const params = useParams<{ id: string }>();
   const [token, setToken] = useState<string | null>(null);
   const [gameState, setGameState] = useState<"waiting" | "question" | "results" | "conclusion">("waiting");
   const [quiz, setQuiz] = useState<any>(null);

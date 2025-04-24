@@ -28,6 +28,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     
     // Get quiz with questions
     const quiz = await getQuizById(lobby.quizId);
+    console.log(`There are ${quiz?.questions?.length || 0} questions in total.`)
     if (!quiz || !quiz.questions || questionIndex >= quiz.questions.length) {
       return NextResponse.json({ error: "Invalid question index" }, { status: 400 });
     }

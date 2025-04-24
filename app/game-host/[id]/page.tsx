@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { useRouter } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
@@ -10,8 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ChevronRight, Timer, AlertCircle } from "lucide-react"
 import { getPusherClient, CHANNELS, EVENTS } from "@/lib/pusher-client"
 
-export default function GameHostPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default function GameHostPage() {
+  const params = useParams<{ id: string }>();
   const [user, setUser] = useState<any>(null);
   const [quiz, setQuiz] = useState<any>(null);
   const [participants, setParticipants] = useState<any[]>([]);
@@ -36,7 +36,7 @@ export default function GameHostPage({ params }: { params: { id: string } }) {
         }
 
         // Fetch lobby data with quiz and participants
-        const lobbyResponse = await fetch(`/api/lobbies/${id}`);
+        const lobbyResponse = await fetch(`/api/lobbies/${params.id}`);
         if (lobbyResponse.ok) {
           const lobbyData = await lobbyResponse.json();
           if (lobbyData.quiz) {
@@ -60,10 +60,10 @@ export default function GameHostPage({ params }: { params: { id: string } }) {
     const pusherClient = getPusherClient();
     
     // Subscribe to lobby channel for participant updates
-    const lobbyChannel = pusherClient.subscribe(CHANNELS.lobby(id));
+    const lobbyChannel = pusherClient.subscribe(CHANNELS.lobby(params.id));
     
     // Subscribe to game channel for game events
-    const gameChannel = pusherClient.subscribe(CHANNELS.game(id));
+    const gameChannel = pusherClient.subscribe(CHANNELS.game(params.id));
     
     // Handle participant joining
     lobbyChannel.bind(EVENTS.PARTICIPANT_JOINED, (data: any) => {
@@ -103,13 +103,13 @@ export default function GameHostPage({ params }: { params: { id: string } }) {
 
     return () => {
       // Clean up Pusher subscriptions
-      pusherClient.unsubscribe(CHANNELS.lobby(id));
-      pusherClient.unsubscribe(CHANNELS.game(id));
+      pusherClient.unsubscribe(CHANNELS.lobby(params.id));
+      pusherClient.unsubscribe(CHANNELS.game(params.id));
       
       // Clear any active timers
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [id]);
+  }, [params.id]);
 
   // Start the timer for a question
   const startTimer = (duration: number) => {
@@ -152,7 +152,7 @@ export default function GameHostPage({ params }: { params: { id: string } }) {
     
     try {
       // Notify server to start the question
-      const response = await fetch(`/api/lobbies/${id}/question/start`, {
+      const response = await fetch(`/api/lobbies/${params.id}/question/start`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -184,7 +184,7 @@ export default function GameHostPage({ params }: { params: { id: string } }) {
     
     try {
       // Notify server that the question time is up
-      const response = await fetch(`/api/lobbies/${id}/question/end`, {
+      const response = await fetch(`/api/lobbies/${params.id}/question/end`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -206,7 +206,7 @@ export default function GameHostPage({ params }: { params: { id: string } }) {
   // Handle ending the game
   const handleEndGame = async () => {
     try {
-      const response = await fetch(`/api/lobbies/${id}/end`, {
+      const response = await fetch(`/api/lobbies/${params.id}/end`, {
         method: "POST"
       });
       

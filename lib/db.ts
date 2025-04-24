@@ -205,12 +205,27 @@ export async function getLobbyById(lobbyId: number) {
       valid: true,
     },
     include: {
-      quiz: true,
+      quiz: {
+        include: {
+          questions: {
+            where: { valid: true },
+            orderBy: { orderNum: "asc" },
+            include: {
+              answers: {
+                where: { valid: true },
+              },
+            },
+          },
+        },
+      },
       host: {
         select: {
           username: true,
         },
       },
+      participants: {
+        where: { valid: true }
+      }
     },
   })
 }

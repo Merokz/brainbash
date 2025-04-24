@@ -15,7 +15,10 @@
         "next-env.d.ts": true,
         "next.config.mjs": true,
         "node_modules": true,
-        ".next": true
+        ".next": true,
+        "app/login": true,
+        "app/register": true,
+        "app/globals.css": true
     },
     "hide-files.files": [
         "tsconfig.json",
@@ -28,6 +31,9 @@
         "next-env.d.ts",
         "next.config.mjs",
         "node_modules",
-        ".next"
+        ".next",
+        "app/login",
+        "app/register",
+        "app/globals.css"
     ]
 }
