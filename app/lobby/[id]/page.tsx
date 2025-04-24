@@ -8,14 +8,16 @@ import { DashboardHeader } from "@/components/dashboard-header"
 import { QRCodeSVG } from "qrcode.react"
 import { Copy, Users } from "lucide-react"
 import { pusherClient, CHANNELS, EVENTS } from "@/lib/pusher-service"
+import { use } from "react"
 
 export default function LobbyPage({ params }: { params: { id: string } }) {
+  // Unwrap params to get the id
+  const id = params.id
   const [user, setUser] = useState<any>(null)
   const [lobby, setLobby] = useState<any>(null)
   const [participants, setParticipants] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const router = useRouter()
-
   useEffect(() => {
     // Fetch user and lobby data from API
     const fetchData = async () => {
@@ -28,7 +30,7 @@ export default function LobbyPage({ params }: { params: { id: string } }) {
         }
 
         // Fetch lobby data
-        const lobbyResponse = await fetch(`/api/lobbies/${params.id}`)
+        const lobbyResponse = await fetch(`/api/lobbies/${id}`)
         if (lobbyResponse.ok) {
           const lobbyData = await lobbyResponse.json()
           setLobby(lobbyData)
@@ -50,7 +52,7 @@ export default function LobbyPage({ params }: { params: { id: string } }) {
     fetchData()
     
     // Set up Pusher channel for real-time updates
-    const channel = pusherClient.subscribe(CHANNELS.lobby(params.id))
+    const channel = pusherClient.subscribe(CHANNELS.lobby(id))
     
     // Listen for participants joining
     channel.bind(EVENTS.PARTICIPANT_JOINED, (data: any) => {
@@ -73,28 +75,38 @@ export default function LobbyPage({ params }: { params: { id: string } }) {
     // Listen for game start
     channel.bind(EVENTS.GAME_STARTED, (data: any) => {
       // Redirect to game host page
-      router.push(`/game-host/${params.id}`)
+      router.push(`/game-host/${id}`)
     })
     
     return () => {
       // Clean up Pusher subscription
-      pusherClient.unsubscribe(CHANNELS.lobby(params.id))
+      pusherClient.unsubscribe(CHANNELS.lobby(id))
     }
-  }, [params.id, router])
+  }, [id, router])
 
   const handleCopyJoinCode = () => {
-    navigator.clipboard.writeText(lobby.joinCode)
+    if (lobby && lobby.joinCode) {
+      navigator.clipboard.writeText(lobby.joinCode)
+    }
   }
-
   const handleStartGame = () => {
     // In a real app, we would call an API to start the game
-    router.push(`/game-host/${params.id}`)
+    router.push(`/game-host/${id}`)
   }
 
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
+  if (!lobby || !lobby.quiz) {
+    return (
+      <div className="flex min-h-screen items-center justify-center flex-col">
+        <h2 className="text-2xl font-bold mb-4">Lobby not found</h2>
+        <Button onClick={() => router.push('/dashboard')}>Return to Dashboard</Button>
       </div>
     )
   }

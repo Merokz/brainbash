@@ -113,6 +113,23 @@ export async function getLobbyByJoinCode(joinCode: string) {
   })
 }
 
+export async function getLobbyById(lobbyId: number) {
+  return prisma.lobby.findUnique({
+    where: {
+      id: lobbyId,
+      valid: true,
+    },
+    include: {
+      quiz: true,
+      host: {
+        select: {
+          username: true,
+        },
+      },
+    },
+  })
+}
+
 export async function createLobby(quizId: number, hostId: number, isPublic: boolean) {
   // Generate a unique 5-digit join code
   let joinCode = "00000"
