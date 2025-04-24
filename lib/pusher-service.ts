@@ -30,5 +30,6 @@ export const EVENTS = {
 // Channel names - functions to generate consistent channel names
 export const CHANNELS = {
   lobby: (lobbyId: string) => `presence-lobby-${lobbyId}`,
-  game: (lobbyId: string) => `private-game-${lobbyId}`
+  game: (lobbyId: string) => `private-game-${lobbyId}`,
+  publicLobbies: () => "public-lobbies" // Add this
 };

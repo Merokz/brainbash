@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
 
     // Trigger a Pusher event for public lobbies
     if (isPublic) {
-      await pusherServer.trigger("public-lobbies", EVENTS.LOBBY_UPDATED, {
+      await pusherServer.trigger(CHANNELS.publicLobbies(), EVENTS.LOBBY_UPDATED, { // Use the function
         action: "created",
         lobby: {
           id: lobby.id,
