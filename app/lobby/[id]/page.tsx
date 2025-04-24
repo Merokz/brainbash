@@ -146,10 +146,9 @@ export default function LobbyPage() {
                 <Copy className="mr-2 h-4 w-4" />
                 Copy Code
               </Button>
-
-              <div className="mb-4">
-                <QRCodeSVG value={`https://brainbash.app/join?code=${lobby.joinCode}`} size={200} />
-              </div>
+                <div className="mb-4 bg-white rounded-xs outline outline-4 outline-white">
+                <QRCodeSVG value={`http://10.3.35.140:3000/join?code=${lobby.joinCode}`} size={200} />
+                </div>
               <p className="text-sm text-muted-foreground">Participants can also scan this QR code to join</p>
             </CardContent>
           </Card>
