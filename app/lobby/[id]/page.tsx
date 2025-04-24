@@ -149,7 +149,7 @@ export default function LobbyPage() {
                 Copy Code
               </Button>
 
-              <div className="mb-4" style={{background: 'white', padding: 12, borderRadius: 12}}>
+              <div className="mb-4 rounded-xl p-xl bg-white">
                 <QRCodeSVG value={`https://brainbash.app/join?code=${lobby.joinCode}`} size={200} />
               </div>
               <p className="text-sm text-muted-foreground">Participants can also scan this QR code to join</p>
