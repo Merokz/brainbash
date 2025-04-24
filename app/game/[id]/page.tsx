@@ -151,36 +151,32 @@ export default function GamePage() {
     try {
       setSubmittedAnswer(true);
       
-      // Prepare the answers data
-      let answerId = null;
-      if (currentQuestion?.questionType === "OPEN_ENDED") {
-        // For open-ended questions, we'll send the text response
-        // We'd handle this differently in a real app
-      } else if (selectedAnswers.length > 0) {
-        // For single choice, use the first (and only) answer
-        if (currentQuestion?.questionType === "SINGLE_CHOICE" || 
-            currentQuestion?.questionType === "TRUE_FALSE") {
-          answerId = selectedAnswers[0];
-        } else {
-          // For multiple choice, we need special handling
-          // For simplicity, just sending the first selected answer
-          answerId = selectedAnswers[0];
-        }
-      }
+      // Determine which endpoint to call based on question type
+      const endpoint = currentQuestion?.questionType === "MULTIPLE_CHOICE" 
+        ? `/api/lobbies/${params.id}/multiple-answer` 
+        : `/api/lobbies/${params.id}/answer`;
+      
+      // Prepare the request body based on question type
+      const requestBody = currentQuestion?.questionType === "MULTIPLE_CHOICE"
+        ? {
+            questionId: currentQuestion.id,
+            answerIds: selectedAnswers,
+            timeToAnswer: initialTimeToAnswer - timeLeft,
+          }
+        : {
+            questionId: currentQuestion.id,
+            answerId: selectedAnswers.length > 0 ? selectedAnswers[0] : null,
+            timeToAnswer: initialTimeToAnswer - timeLeft,
+          };
       
       // Submit the answer to the server
-      const response = await fetch(`/api/lobbies/${params.id}/answer`, {
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify({
-          questionId: currentQuestion.id,
-          answerId: answerId,
-          timeToAnswer: initialTimeToAnswer - timeLeft,
-          openAnswer: currentQuestion?.questionType === "OPEN_ENDED" ? openAnswer : undefined
-        })
+        body: JSON.stringify(requestBody)
       });
       
       if (!response.ok) {

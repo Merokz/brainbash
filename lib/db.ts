@@ -547,14 +547,109 @@ export async function calculateAndUpdateScore(
   };
 }
 
-// This is a suggested addition to properly handle multiple-choice questions
+// This is an improved version to properly handle multiple-choice questions scoring
+export async function calculateMultipleChoiceScore(
+  participantId: number,
+  questionId: number,
+  answerIds: number[],
+  timeToAnswer: number
+) {
+  const question = await prisma.question.findUnique({
+    where: { id: questionId },
+    include: {
+      answers: { where: { valid: true } },
+    },
+  });
+
+  if (!question) return { newScore: 0, pointsEarned: 0, isCorrect: false };
+
+  const participant = await prisma.participant.findUnique({
+    where: { id: participantId },
+    include: { lobby: true },
+  });
+
+  if (!participant) return { newScore: 0, pointsEarned: 0, isCorrect: false };
+
+  // Get the position of this answer submission
+  const allAnswers = await prisma.participantAnswer.findMany({
+    where: { 
+      questionId,
+      valid: true,
+    },
+    orderBy: { createdAt: 'asc' },
+  });
+  
+  const position = allAnswers.findIndex(a => a.participantId === participantId) + 1;
+  
+  const totalParticipants = await prisma.participant.count({
+    where: { 
+      lobbyId: participant.lobbyId,
+      valid: true,
+    },
+  });
+
+  const maxTime = participant.lobby.timeToAnswer || 30;
+  const timeFactor = Math.max(0, 1 - (timeToAnswer / maxTime));
+  const positionFactor = Math.max(0, 1 - ((position - 1) / totalParticipants));
+  const participantFactor = 0.05 * Math.min(1, totalParticipants / 10);
+
+  // Calculate correctness factor
+  const correctAnswers = question.answers.filter(a => a.isCorrect);
+  const incorrectAnswers = question.answers.filter(a => !a.isCorrect);
+  
+  // Count correct selections
+  const correctSelections = answerIds.filter(id => 
+    correctAnswers.some(a => a.id === id)
+  ).length;
+  
+  // Count incorrect selections
+  const incorrectSelections = answerIds.filter(id => 
+    incorrectAnswers.some(a => a.id === id)
+  ).length;
+  
+  // Calculate accuracy percentage
+  const totalCorrectAnswers = correctAnswers.length;
+  const accuracy = totalCorrectAnswers > 0 ? 
+    (correctSelections / totalCorrectAnswers) : 0;
+  
+  // Penalty for incorrect selections
+  const penalty = incorrectSelections > 0 ? 
+    (incorrectSelections / incorrectAnswers.length) * 0.5 : 0;
+  
+  // Final correctness factor (between 0 and 1)
+  const correctnessFactor = Math.max(0, accuracy - penalty);
+  
+  // Calculate score
+  const score = Math.round(
+    1000 * correctnessFactor * (0.8 * timeFactor + 0.15 * positionFactor + participantFactor)
+  );
+  
+  // Update participant's score
+  const updatedParticipant = await prisma.participant.update({
+    where: { id: participantId },
+    data: {
+      score: {
+        increment: score,
+      },
+    },
+  });
+
+  return {
+    newScore: updatedParticipant.score,
+    pointsEarned: score,
+    isCorrect: correctnessFactor > 0,
+    accuracy: Math.round(correctnessFactor * 100)
+  };
+}
+
+// This function allows recording multiple answers for a single participant on a question
 export async function recordMultipleAnswers(
   participantId: number,
   questionId: number,
   answerIds: number[],
   timeToAnswer: number
 ) {
-  // Create multiple participant answer records
+  // Create records for each selected answer
   const answers = await Promise.all(
     answerIds.map(answerId => 
       prisma.participantAnswer.create({
