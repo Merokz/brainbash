@@ -4,6 +4,8 @@ import { getUserFromToken } from "@/lib/auth"
 import { HomeHero } from "@/components/home-hero"
 import { PublicLobbies } from "@/components/public-lobbies"
 import { JoinPrivateGame } from "@/components/join-private-game"
+import logoBanner from "@/public/logo-banner.png";
+import Image from "next/image";
 
 export default async function Home() {
   const user = await getUserFromToken()
@@ -14,7 +16,7 @@ export default async function Home() {
         <div className="container flex h-14 items-center">
           <div className="mr-4 flex">
             <Link href="/" className="flex items-center space-x-2">
-              <span className="font-bold text-xl">BrainBash</span>
+              <Image src={logoBanner} alt="Logo" width={180}/>
             </Link>
           </div>
           <div className="flex flex-1 items-center justify-end space-x-2">

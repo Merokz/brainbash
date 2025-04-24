@@ -132,6 +132,21 @@ export function QuestionForm({ question, index, onChange, onRemove }: QuestionFo
     })
   }
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+  
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      const base64String = reader.result as string
+      onChange({
+        ...question,
+        image: base64String,
+      })
+    }
+    reader.readAsDataURL(file)
+  }
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -150,6 +165,23 @@ export function QuestionForm({ question, index, onChange, onRemove }: QuestionFo
             placeholder="Enter your question"
             rows={2}
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor={`question-image-${index}`}>Upload Image</Label>
+          <Input
+            id={`question-image-${index}`}
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+          />
+          {question.image && (
+            <img
+              src={question.image}
+              alt="Uploaded preview"
+              className="mt-2 max-h-48 rounded border"
+            />
+          )}
         </div>
 
         <div className="space-y-2">

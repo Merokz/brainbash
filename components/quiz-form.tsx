@@ -114,6 +114,12 @@ export function QuizForm({ quiz }: { quiz?: any }) {
     setError("")
 
     try {
+      console.log(JSON.stringify({
+        title,
+        description,
+        isPublic,
+        questions,
+      }));
       const endpoint = quiz?.id ? `/api/quizzes/${quiz.id}` : "/api/quizzes/create"
 
       const method = quiz?.id ? "PUT" : "POST"

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { PrismaClient } from "@prisma/client"
 import { getUserFromToken } from "@/lib/auth"
 import { getQuizById } from "@/lib/db"
+import { saveBase64Image } from "@/lib/save-image"
 
 const prisma = new PrismaClient()
 
@@ -84,7 +85,12 @@ export async function PUT(request: Request, { params }: { params: { id: string }
       // Then create or update questions
       for (let i = 0; i < questions.length; i++) {
         const q = questions[i]
-
+        let imagePath = null;
+        
+                if (q.image && q.image.startsWith("data:image/")) {
+                  const fileName = `${quiz.id}-${i}`; // or 
+                  imagePath = await saveBase64Image(q.image, fileName);
+                }
         let question
         if (q.id) {
           // Update existing question
@@ -92,7 +98,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
             where: { id: q.id },
             data: {
               questionText: q.questionText,
-              image: q.image,
+              image: imagePath,
               orderNum: i,
               questionType: q.questionType,
               valid: true,
