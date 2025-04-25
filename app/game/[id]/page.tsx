@@ -26,8 +26,14 @@ export default function GamePage() {
   const [results, setResults] = useState<any>(null);
   const [conclusion, setConclusion] = useState<any>(null);
   const [submittedAnswer, setSubmittedAnswer] = useState<boolean>(false);
+  const submittedAnswerRef = useRef(submittedAnswer); // Ref to track submittedAnswer
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const router = useRouter();
+
+  // Keep submittedAnswerRef updated with the latest state
+  useEffect(() => {
+    submittedAnswerRef.current = submittedAnswer;
+  }, [submittedAnswer]);
 
   useEffect(() => {
     // Get participant token from localStorage
@@ -45,7 +51,7 @@ export default function GamePage() {
     // Set up Pusher channels
     const pusherClient = getPusherClient();
     const gameChannel = pusherClient.subscribe(CHANNELS.game(params.id));
-    
+
     // Listen for game start
     gameChannel.bind(EVENTS.GAME_STARTED, (data: any) => {
       if (data.quiz && !data.hostView) {
@@ -53,31 +59,34 @@ export default function GamePage() {
         setGameState("waiting"); // Wait for the first question
       }
     });
-    
+
     // Listen for new questions
     gameChannel.bind(EVENTS.QUESTION_STARTED, (data: any) => {
       // Clear any previous timers
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
-      
+
+      const questionIdForTimeout = data.question.id; // Capture ID for timeout
+      const timeForTimeout = data.timeToAnswer || 30; // Capture time for timeout
+
       setCurrentQuestion(data.question);
       setCurrentQuestionIndex(data.questionIndex);
-      setInitialTimeToAnswer(data.timeToAnswer || 30);
-      setTimeLeft(data.timeToAnswer || 30);
+      setInitialTimeToAnswer(timeForTimeout); // Use captured time
+      setTimeLeft(timeForTimeout);           // Use captured time
       setSelectedAnswers([]);
       setOpenAnswer("");
-      setSubmittedAnswer(false);
+      setSubmittedAnswer(false); // Reset submitted state
       setGameState("question");
-      
+
       // Start countdown timer
       timerRef.current = setInterval(() => {
         setTimeLeft(prev => {
           if (prev <= 1) {
             clearInterval(timerRef.current!);
-            if (!submittedAnswer) {
-              // Auto-submit timeout if no answer was given
-              handleTimedOut();
+            // Check the ref to see if an answer was submitted before timeout
+            if (!submittedAnswerRef.current) {
+              handleTimedOut(questionIdForTimeout, timeForTimeout); // Pass captured ID and time
             }
             return 0;
           }
@@ -85,20 +94,20 @@ export default function GamePage() {
         });
       }, 1000);
     });
-    
+
     // Listen for question ending
     gameChannel.bind(EVENTS.QUESTION_ENDED, (data: any) => {
       // Clear the timer if it's still running
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
-      
+
       setGameState("results");
       setResults({
         correctAnswers: data.correctAnswers,
         isLastQuestion: data.isLastQuestion
       });
-      
+
       // After a few seconds, go back to waiting for the next question
       setTimeout(() => {
         if (data.isLastQuestion) {
@@ -108,18 +117,30 @@ export default function GamePage() {
         }
       }, 5000);
     });
-    
+
     // Listen for game end
     gameChannel.bind(EVENTS.GAME_ENDED, (data: any) => {
+      // Clear timer just in case
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
       setGameState("conclusion");
+      // Process results (ensure your data structure matches)
+      const participantResult = data.results?.find((p: any) => p.token === token); // Example: find user result
+      const rank = data.results?.sort((a: any, b: any) => b.score - a.score).findIndex((p: any) => p.token === token) + 1;
+
       setConclusion({
-        rank: data.yourRank,
-        score: data.yourScore,
-        totalParticipants: data.totalParticipants,
-        topPlayers: data.topPlayers || [],
+        rank: rank || 'N/A',
+        score: participantResult?.score ?? 0,
+        totalParticipants: data.results?.length ?? 0,
+        topPlayers: data.results?.sort((a: any, b: any) => b.score - a.score).slice(0, 5).map((p: any) => ({
+          username: p.username,
+          score: p.score,
+          isYou: p.token === token
+        })) || [],
       });
     });
-    
+
     // Clean up on unmount
     return () => {
       pusherClient.unsubscribe(CHANNELS.game(params.id));
@@ -127,12 +148,12 @@ export default function GamePage() {
         clearInterval(timerRef.current);
       }
     };
-  }, [params.id, router]);
+  }, [params.id, router, token]); // Added token dependency
 
   // Handle answer selection
   const handleAnswerSelect = (answerId: number) => {
-    if (submittedAnswer) return;
-    
+    if (submittedAnswerRef.current) return; // Check ref
+
     if (currentQuestion?.questionType === "MULTIPLE_CHOICE") {
       // For multiple choice, toggle the selected answer
       setSelectedAnswers((prev) =>
@@ -146,29 +167,34 @@ export default function GamePage() {
 
   // Handle answer submission
   const handleSubmitAnswer = async () => {
-    if (submittedAnswer) return;
-    
+    if (submittedAnswerRef.current) return; // Check ref
+
     try {
-      setSubmittedAnswer(true);
-      
+      setSubmittedAnswer(true); // Set state (ref will update via useEffect)
+
+      // Clear timer immediately on submission
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+
       // Determine which endpoint to call based on question type
-      const endpoint = currentQuestion?.questionType === "MULTIPLE_CHOICE" 
-        ? `/api/lobbies/${params.id}/multiple-answer` 
+      const endpoint = currentQuestion?.questionType === "MULTIPLE_CHOICE"
+        ? `/api/lobbies/${params.id}/multiple-answer`
         : `/api/lobbies/${params.id}/answer`;
-      
+
       // Prepare the request body based on question type
       const requestBody = currentQuestion?.questionType === "MULTIPLE_CHOICE"
         ? {
             questionId: currentQuestion.id,
             answerIds: selectedAnswers,
-            timeToAnswer: initialTimeToAnswer - timeLeft,
+            timeToAnswer: initialTimeToAnswer - timeLeft, // Calculate time taken
           }
         : {
             questionId: currentQuestion.id,
             answerId: selectedAnswers.length > 0 ? selectedAnswers[0] : null,
-            timeToAnswer: initialTimeToAnswer - timeLeft,
+            timeToAnswer: initialTimeToAnswer - timeLeft, // Calculate time taken
           };
-      
+
       // Submit the answer to the server
       const response = await fetch(endpoint, {
         method: "POST",
@@ -178,23 +204,29 @@ export default function GamePage() {
         },
         body: JSON.stringify(requestBody)
       });
-      
+
       if (!response.ok) {
         console.error("Failed to submit answer:", await response.text());
+        // Optionally reset submittedAnswer if submission fails?
+        // setSubmittedAnswer(false);
       }
     } catch (error) {
       console.error("Error submitting answer:", error);
+      // Optionally reset submittedAnswer on error?
+      // setSubmittedAnswer(false);
     }
   };
-  
+
   // Handle timeout - no answer submitted in time
-  const handleTimedOut = async () => {
-    if (submittedAnswer) return;
-    
+  const handleTimedOut = async (questionId: number | null, initialTime: number | null) => {
+    // Double-check ref and necessary data
+    if (submittedAnswerRef.current || !questionId || initialTime === null) return;
+
     try {
+      // Set submitted state immediately
       setSubmittedAnswer(true);
-      
-      // Submit a timeout to the server
+
+      // Submit a timeout to the server using the passed data
       const response = await fetch(`/api/lobbies/${params.id}/answer`, {
         method: "POST",
         headers: {
@@ -202,18 +234,22 @@ export default function GamePage() {
           "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify({
-          questionId: currentQuestion.id,
+          questionId: questionId, // Use passed ID
           answerId: null,
-          timeToAnswer: initialTimeToAnswer,
+          timeToAnswer: initialTime, // Use passed initial time as time taken
           timedOut: true
         })
       });
-      
+
       if (!response.ok) {
         console.error("Failed to submit timeout:", await response.text());
+        // Optionally reset submittedAnswer if submission fails?
+        // setSubmittedAnswer(false);
       }
     } catch (error) {
       console.error("Error submitting timeout:", error);
+      // Optionally reset submittedAnswer on error?
+      // setSubmittedAnswer(false);
     }
   };
 
