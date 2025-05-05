@@ -2,11 +2,24 @@ import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { render } from '@react-email/render';
 import ResetPasswordEmail from "@/components/reset-password-email";
+import jwt from "jsonwebtoken";
 
 export async function POST(request: Request) {
   try {
     const { email } = await request.json();
-    const resetLink = `MI BOMBOOOOO;`
+
+    const JWT_SECRET = process.env.JWT_SECRET!; 
+
+    const token = jwt.sign(
+      {
+        email: email, // or user ID
+        purpose: "password-reset"
+      },
+      JWT_SECRET,
+      { expiresIn: "15m" }
+    );
+    
+    const resetLink = `${process.env.BASE_URL}/reset-password?token=${token}`;
     const html = await render(<ResetPasswordEmail email={email} resetLink={resetLink} />)
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",

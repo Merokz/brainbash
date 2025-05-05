@@ -432,3 +432,10 @@ export async function createNewQuiz(creatorId: number, title: string, descriptio
     },
   });
 }
+
+export async function updatePassword(email: string, newPassword: string) {
+  return prisma.user.update({
+        where: { email: email },
+        data: { password: newPassword },
+  });
+}
