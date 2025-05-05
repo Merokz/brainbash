@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { cacheExtension } from './cache';
+import { cacheExtension, cacheClient } from './cache';
 
 // Prevent multiple instances of Prisma Client in development
 declare global {
@@ -57,11 +57,11 @@ export async function findUserByCredentials(usernameOrEmail: string) {
 
 export async function findUserById(userId: number) {
   return prisma.user.findUnique({
-    where: { 
+    where: {
       id: userId,
       valid: true,
     },
-     select: {
+    select: {
       id: true,
       username: true,
       email: true,
@@ -111,45 +111,38 @@ export async function getPublicQuizzes() {
 }
 
 export async function getUserQuizzes(userId: number) {
-  return prisma.quiz.findMany({
-    where: {
-      creatorId: userId,
-      valid: true,
-    },
-    include: {
-      _count: {
-        select: {
-          questions: true,
-        },
+  const cacheKey = `User:${userId}:quizzes`;
+  return cacheClient.get(cacheKey, () =>
+    prisma.quiz.findMany({
+      where: {
+        creatorId: userId,
+        valid: true,
       },
-    },
-  })
-}
-
-export async function getQuizById(quizId: number) {
-  return prisma.quiz.findUnique({
-    where: {
-      id: quizId,
-      valid: true,
-    },
-    include: {
-      questions: {
-        where: {
-          valid: true,
-        },
-        orderBy: {
-          orderNum: "asc",
-        },
-        include: {
-          answers: {
-            where: {
-              valid: true,
-            },
+      include: {
+        _count: {
+          select: {
+            questions: true,
           },
         },
       },
-    },
-  })
+    })
+  );
+}
+
+export async function getQuizById(quizId: number) {
+  const cacheKey = `Quiz:${quizId}:full`;
+  return cacheClient.get(cacheKey, () =>
+    prisma.quiz.findUnique({
+      where: { id: quizId, valid: true },
+      include: {
+        questions: {
+          where: { valid: true },
+          orderBy: { orderNum: 'asc' },
+          include: { answers: { where: { valid: true } } },
+        },
+      },
+    })
+  );
 }
 
 // Lobby functions
@@ -274,17 +267,17 @@ export async function updateParticipantToken(participantId: number, sessionToken
 }
 
 export async function getParticipantByIdAndLobbyId(participantId: number, lobbyId: number) {
-    return prisma.participant.findUnique({
-      where: {
-        id: participantId,
-        lobbyId: lobbyId,
-        valid: true,
-      },
-      include: {
-        lobby: true,
-      },
-    });
-  }
+  return prisma.participant.findUnique({
+    where: {
+      id: participantId,
+      lobbyId: lobbyId,
+      valid: true,
+    },
+    include: {
+      lobby: true,
+    },
+  });
+}
 
 // Game functions
 export async function startGame(lobbyId: number) {
@@ -408,10 +401,10 @@ export async function invalidateQuestionsForQuiz(quizId: number) {
   });
 }
 
-export async function updateQuestion(questionId: number, data: { 
-  questionText: string, 
-  image?: string, 
-  orderNum: number, 
+export async function updateQuestion(questionId: number, data: {
+  questionText: string,
+  image?: string,
+  orderNum: number,
   questionType: string,
   valid: boolean
 }) {
@@ -421,11 +414,11 @@ export async function updateQuestion(questionId: number, data: {
   });
 }
 
-export async function createQuestion(quizId: number, data: { 
-  questionText: string, 
-  image?: string, 
-  orderNum: number, 
-  questionType: string 
+export async function createQuestion(quizId: number, data: {
+  questionText: string,
+  image?: string,
+  orderNum: number,
+  questionType: string
 }) {
   return prisma.question.create({
     data: {
@@ -485,7 +478,7 @@ export async function createNewQuiz(creatorId: number, title: string, descriptio
 
 export async function updatePassword(email: string, newPassword: string) {
   return prisma.user.update({
-        where: { email: email },
-        data: { password: newPassword },
+    where: { email: email },
+    data: { password: newPassword },
   });
 }

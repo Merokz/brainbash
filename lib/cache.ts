@@ -11,7 +11,7 @@ interface CacheEntry<T> {
 export class MemoryCache {
   private store = new Map<string, CacheEntry<any>>();
 
-  constructor(private defaultTtlSeconds = 60) {}
+  constructor(private defaultTtlSeconds = 600) {}
 
   async get<T>(
     key: string,
