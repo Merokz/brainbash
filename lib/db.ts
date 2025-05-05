@@ -1,24 +1,25 @@
 import { PrismaClient } from '@prisma/client';
+import { cacheExtension } from './cache';
 
 // Prevent multiple instances of Prisma Client in development
 declare global {
-  var prisma: PrismaClient | undefined;
+  // Allow extended Prisma client (with cache extension) or undefined
+  var prisma: any;
 }
 
 // Connection pooling configuration
 const prismaClientSingleton = () => {
-  const prisma = new PrismaClient({
+  // Base Prisma client with logging and datasource config
+  const base = new PrismaClient({
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-    datasources: {
-      db: {
-        url: process.env.DATABASE_URL,
-      },
-    },
+    datasources: { db: { url: process.env.DATABASE_URL } },
   });
-  return prisma;
+  // Extend with in-memory caching
+  return base.$extends(cacheExtension);
 };
 
-export const prisma = global.prisma || prismaClientSingleton();
+// singleton export (any to accommodate extended client)
+export const prisma: any = global.prisma || prismaClientSingleton();
 
 if (process.env.NODE_ENV === 'development') {
   global.prisma = prisma;
@@ -315,14 +316,14 @@ export async function startGame(lobbyId: number) {
       version: original.version + 1,
       parentQuizId: rootQuizId,
       questions: {
-        create: original.questions.map(q => ({
+        create: (original.questions as any[]).map((q: any) => ({
           questionText: q.questionText,
           image: q.image,
           orderNum: q.orderNum,
           questionType: q.questionType,
           valid: q.valid,
           answers: {
-            create: q.answers.map(a => ({
+            create: (q.answers as any[]).map((a: any) => ({
               answerText: a.answerText,
               isCorrect: a.isCorrect,
               valid: a.valid,

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -100,30 +100,32 @@ export default function HostGame() {
             <TabsTrigger value="your">Your Quizzes</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="public" className="space-y-4">
-            {publicQuizzes.length > 0 ? (
-              publicQuizzes.map((quiz) => (
-                <Card key={quiz.id}>
-                  <CardHeader>
-                    <CardTitle>{quiz.title}</CardTitle>
-                    <CardDescription>{quiz.description || "No description provided"}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex justify-between items-center">
-                      <div className="text-sm text-muted-foreground">{quiz._count.questions} questions</div>
-                      <Button onClick={() => handleHostQuiz(quiz.id)}>Host Game</Button>
-                    </div>
+          <Suspense fallback={<div className="animate-pulse">Loading...</div>}>
+            <TabsContent value="public" className="space-y-4">
+              {publicQuizzes.length > 0 ? (
+                publicQuizzes.map((quiz) => (
+                  <Card key={quiz.id}>
+                    <CardHeader>
+                      <CardTitle>{quiz.title}</CardTitle>
+                      <CardDescription>{quiz.description || "No description provided"}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex justify-between items-center">
+                        <div className="text-sm text-muted-foreground">{quiz._count.questions} questions</div>
+                        <Button onClick={() => handleHostQuiz(quiz.id)}>Host Game</Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <Card>
+                  <CardContent className="py-8 text-center">
+                    <p className="text-muted-foreground mb-4">No public quizzes available</p>
                   </CardContent>
                 </Card>
-              ))
-            ) : (
-              <Card>
-                <CardContent className="py-8 text-center">
-                  <p className="text-muted-foreground mb-4">No public quizzes available</p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
+              )}
+            </TabsContent>
+          </Suspense>
 
           <TabsContent value="your" className="space-y-4">
             {userQuizzes.length > 0 ? (
