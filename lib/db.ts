@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma, Quiz } from '@prisma/client'; // Import Prisma and Quiz
 import { cacheExtension, cacheClient } from './cache';
 
 // Prevent multiple instances of Prisma Client in development
@@ -110,9 +110,20 @@ export async function getPublicQuizzes() {
   })
 }
 
-export async function getUserQuizzes(userId: number) {
+type QuizWithQuestionCount = Prisma.QuizGetPayload<{
+  include: {
+    _count: {
+      select: {
+        questions: true;
+      };
+    };
+  };
+}>;
+
+export async function getUserQuizzes(userId: number): Promise<QuizWithQuestionCount[]> {
   const cacheKey = `User:${userId}:quizzes`;
-  return cacheClient.get(cacheKey, () =>
+  // Use the specific user cache TTL
+  return cacheClient.get<QuizWithQuestionCount[]>(cacheKey, () =>
     prisma.quiz.findMany({
       where: {
         creatorId: userId,
@@ -125,7 +136,8 @@ export async function getUserQuizzes(userId: number) {
           },
         },
       },
-    })
+    }),
+    USER_CACHE_TTL // Pass the specific TTL here
   );
 }
 
@@ -145,34 +157,62 @@ export async function getQuizById(quizId: number) {
   );
 }
 
+type LobbyPublic = Prisma.LobbyGetPayload<{
+  include: {
+    quiz: {
+      include: {
+        questions: {
+          include: {
+            answers: true,
+          },
+        },
+      },
+    },
+    host: {
+      select: {
+        username: true,
+      },
+    },
+    _count: {
+      select: {
+        participants: true,
+      },
+    },
+  };
+}>;
+
 // Lobby functions
-export async function getPublicLobbies() {
-  return prisma.lobby.findMany({
-    where: {
-      quiz: {
-        isPublic: true,
+export async function getPublicLobbies(): Promise<LobbyPublic[]> {
+  const cacheKey = 'PublicLobbies:all';
+  return cacheClient.get<LobbyPublic[]>(cacheKey, () =>
+    prisma.lobby.findMany({
+      where: {
+        quiz: {
+          isPublic: true,
+        },
+        state: "IN_LOBBY",
+        valid: true,
       },
-      state: "IN_LOBBY",
-      valid: true,
-    },
-    include: {
-      quiz: {
-        select: {
-          title: true,
+      include: {
+        quiz: {
+          select: {
+            title: true,
+          },
+        },
+        host: {
+          select: {
+            username: true,
+          },
+        },
+        _count: {
+          select: {
+            participants: true,
+          },
         },
       },
-      host: {
-        select: {
-          username: true,
-        },
-      },
-      _count: {
-        select: {
-          participants: true,
-        },
-      },
-    },
-  })
+    }),
+    CACHE_TTL // Pass the specific TTL here
+  );
 }
 
 export async function getLobbyByJoinCode(joinCode: string) {
@@ -280,61 +320,61 @@ export async function getParticipantByIdAndLobbyId(participantId: number, lobbyI
 }
 
 // Game functions
-export async function startGame(lobbyId: number) {
-  // fetch lobby and its quiz, questions, and answers
-  const lobby = await prisma.lobby.findUnique({
-    where: { id: lobbyId },
-    include: {
-      quiz: {
-        include: {
-          questions: { include: { answers: true } }
-        }
-      }
-    }
-  });
-  if (!lobby) {
-    throw new Error(`Lobby ${lobbyId} not found`);
-  }
-  const original = lobby.quiz;
-  // determine root quiz for versioning
-  const rootQuizId = original.parentQuizId ?? original.id;
-  // create a versioned clone of the quiz, questions, and answers
-  const cloned = await prisma.quiz.create({
-    data: {
-      title: original.title,
-      description: original.description,
-      creatorId: original.creatorId,
-      isPublic: original.isPublic,
-      valid: true,
-      version: original.version + 1,
-      parentQuizId: rootQuizId,
-      questions: {
-        create: (original.questions as any[]).map((q: any) => ({
-          questionText: q.questionText,
-          image: q.image,
-          orderNum: q.orderNum,
-          questionType: q.questionType,
-          valid: q.valid,
-          answers: {
-            create: (q.answers as any[]).map((a: any) => ({
-              answerText: a.answerText,
-              isCorrect: a.isCorrect,
-              valid: a.valid,
-            }))
-          }
-        }))
-      }
-    }
-  });
-  // update lobby to use the cloned quiz version
-  return prisma.lobby.update({
-    where: { id: lobbyId },
-    data: {
-      state: "IN_GAME",
-      quizId: cloned.id,
-    },
-  });
-}
+// export async function startGame(lobbyId: number) {
+//   // fetch lobby and its quiz, questions, and answers
+//   const lobby = await prisma.lobby.findUnique({
+//     where: { id: lobbyId },
+//     include: {
+//       quiz: {
+//         include: {
+//           questions: { include: { answers: true } }
+//         }
+//       }
+//     }
+//   });
+//   if (!lobby) {
+//     throw new Error(`Lobby ${lobbyId} not found`);
+//   }
+//   const original = lobby.quiz;
+//   // determine root quiz for versioning
+//   const rootQuizId = original.parentQuizId ?? original.id;
+//   // create a versioned clone of the quiz, questions, and answers
+//   const cloned = await prisma.quiz.create({
+//     data: {
+//       title: original.title,
+//       description: original.description,
+//       creatorId: original.creatorId,
+//       isPublic: original.isPublic,
+//       valid: true,
+//       version: original.version + 1,
+//       parentQuizId: rootQuizId,
+//       questions: {
+//         create: (original.questions as any[]).map((q: any) => ({
+//           questionText: q.questionText,
+//           image: q.image,
+//           orderNum: q.orderNum,
+//           questionType: q.questionType,
+//           valid: q.valid,
+//           answers: {
+//             create: (q.answers as any[]).map((a: any) => ({
+//               answerText: a.answerText,
+//               isCorrect: a.isCorrect,
+//               valid: a.valid,
+//             }))
+//           }
+//         }))
+//       }
+//     }
+//   });
+//   // update lobby to use the cloned quiz version
+//   return prisma.lobby.update({
+//     where: { id: lobbyId },
+//     data: {
+//       state: "IN_GAME",
+//       quizId: cloned.id,
+//     },
+//   });
+// }
 
 export async function endGame(lobbyId: number) {
   return prisma.lobby.update({
