@@ -93,7 +93,11 @@ export default function LobbyPage() {
     };
   }, [params.id, router]);
 
-  const handleCopyJoinCode = () => {
+  const handleCopyJoinCode = async () => {
+    const text = lobby?.joinCode;
+    if (!text) return;
+
+    // Try the modern clipboard API first (requires secure context)
     if (lobby && lobby.joinCode) {
       navigator.clipboard.writeText(lobby.joinCode);
     }
@@ -163,7 +167,7 @@ export default function LobbyPage() {
                 Copy Code
               </Button>
 
-              <div className="mb-4">
+              <div className="mb-4 rounded-xl p-xl bg-white">
                 <QRCodeSVG
                   value={`https://brainbash.app/join?code=${lobby.joinCode}`}
                   size={200}

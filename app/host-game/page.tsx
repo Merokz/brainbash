@@ -28,9 +28,11 @@ export default function HostGame() {
   useEffect(() => {
     async function fetchData() {
       try {
-        // In a real app, we would fetch the user data from an API
-        // For now, we'll just simulate it
-        setUser({ username: "User" })
+        const user = await fetch('/api/auth/me');
+        if (user.ok) {
+          const userData = await user.json();
+          setUser(userData);
+        }
 
         // Fetch public quizzes
         const publicResponse = await fetch("/api/quizzes?type=public")
