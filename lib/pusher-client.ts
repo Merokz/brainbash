@@ -23,6 +23,7 @@ export function getPusherClient() {
                 const token = localStorage.getItem('participant_token');
                 return token ? `Bearer ${token}` : '';
               } catch (e) {
+                console.log("Error accessing localStorage:", e);
                 return '';
               }
             }

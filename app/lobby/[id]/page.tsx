@@ -87,9 +87,18 @@ export default function LobbyPage() {
     }
   }, [params.id, router])
 
-  const handleCopyJoinCode = () => {
-    if (lobby && lobby.joinCode) {
-      navigator.clipboard.writeText(lobby.joinCode)
+  const handleCopyJoinCode = async () => {
+    const text = lobby?.joinCode
+    if (!text) return
+
+    // Try the modern clipboard API first (requires secure context)
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(text)
+        return
+      } catch (err) {
+        console.warn('navigator.clipboard failed', err)
+      }
     }
   }
   const handleStartGame = async () => {
