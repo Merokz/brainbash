@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/db';
+import { findUserById, getParticipantByIdAndLobbyId, prisma } from '@/lib/db';
 import { compare, hash } from "bcrypt"
 import { SignJWT, jwtVerify } from "jose"
 import { cookies } from "next/headers"
@@ -52,15 +52,8 @@ export async function getUserFromToken(): Promise<any> {
   const payload = await verifyToken(token)
   if (!payload || !payload.userId) return null
 
-  const user = await prisma.user.findUnique({
-    where: { id: payload.userId, valid: true },
-    select: {
-      id: true,
-      username: true,
-      email: true,
-      isRegistered: true,
-    },
-  })
+  const user = await findUserById(payload.userId)
+  if (!user) return null
 
   return user
 }
@@ -69,16 +62,10 @@ export async function getParticipantFromToken(token: string): Promise<any> {
   const payload = await verifyToken(token)
   if (!payload || !payload.participantId || !payload.lobbyId) return null
 
-  const participant = await prisma.participant.findUnique({
-    where: {
-      id: payload.participantId,
-      lobbyId: payload.lobbyId,
-      valid: true,
-    },
-    include: {
-      lobby: true,
-    },
-  })
+  const participant = await getParticipantByIdAndLobbyId(
+    payload.participantId,
+    payload.lobbyId,
+  )
 
   return participant
 }

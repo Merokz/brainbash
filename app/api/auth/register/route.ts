@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { prisma } from '@/lib/db';
+import { checkExistingUser, createUser } from '@/lib/db';
 import { hashPassword, createUserToken } from "@/lib/auth"
 import { cookies } from "next/headers"
 
@@ -8,13 +8,8 @@ import { cookies } from "next/headers"
 export async function POST(request: Request) {
 	try {
 		const { username, email, password } = await request.json()
-
 		// Check if user already exists
-		const existingUser = await prisma.user.findFirst({
-			where: {
-				OR: [{ username }, { email }],
-			},
-		})
+		const existingUser = await checkExistingUser(username, email)
 
 		if (existingUser) {
 			return NextResponse.json({ error: "Username or email already exists" }, { status: 400 })
@@ -22,15 +17,8 @@ export async function POST(request: Request) {
 
 		// Hash password
 		const hashedPassword = await hashPassword(password)
-
 		// Create user
-		const user = await prisma.user.create({
-			data: {
-				username,
-				email,
-				password: hashedPassword,
-			},
-		})
+		const user = await createUser(username, email, hashedPassword)
 
 		// Create token
 		const token = await createUserToken(user.id)

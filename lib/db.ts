@@ -30,6 +30,63 @@ if (process.env.NODE_ENV !== 'development') {
   });
 }
 
+// Cache settings
+const CACHE_TTL = 60; // 60 seconds TTL for most queries
+const CACHE_SWR = 300; // 5 minutes SWR
+const USER_CACHE_TTL = 300; // 5 minutes for user-related queries
+
+// User functions
+export async function findUserByCredentials(usernameOrEmail: string) {
+  return prisma.user.findFirst({
+    where: {
+      OR: [
+        { username: usernameOrEmail },
+        { email: usernameOrEmail },
+      ],
+      valid: true,
+    },
+    select: {
+      id: true,
+      username: true,
+      email: true,
+      password: true,
+    },
+  });
+}
+
+export async function findUserById(userId: number) {
+  return prisma.user.findUnique({
+    where: { 
+      id: userId,
+      valid: true,
+    },
+     select: {
+      id: true,
+      username: true,
+      email: true,
+      isRegistered: true,
+    },
+  });
+}
+
+export async function checkExistingUser(username: string, email: string) {
+  return prisma.user.findFirst({
+    where: {
+      OR: [{ username }, { email }],
+    },
+  });
+}
+
+export async function createUser(username: string, email: string, password: string) {
+  return prisma.user.create({
+    data: {
+      username,
+      email,
+      password,
+    },
+  });
+}
+
 // Quiz functions
 export async function getPublicQuizzes() {
   return prisma.quiz.findMany({
@@ -148,12 +205,27 @@ export async function getLobbyById(lobbyId: number) {
       valid: true,
     },
     include: {
-      quiz: true,
+      quiz: {
+        include: {
+          questions: {
+            where: { valid: true },
+            orderBy: { orderNum: "asc" },
+            include: {
+              answers: {
+                where: { valid: true },
+              },
+            },
+          },
+        },
+      },
       host: {
         select: {
           username: true,
         },
       },
+      participants: {
+        where: { valid: true }
+      }
     },
   })
 }
@@ -199,6 +271,19 @@ export async function updateParticipantToken(participantId: number, sessionToken
     data: { sessionToken },
   })
 }
+
+export async function getParticipantByIdAndLobbyId(participantId: number, lobbyId: number) {
+    return prisma.participant.findUnique({
+      where: {
+        id: participantId,
+        lobbyId: lobbyId,
+        valid: true,
+      },
+      include: {
+        lobby: true,
+      },
+    });
+  }
 
 // Game functions
 export async function startGame(lobbyId: number) {
@@ -246,4 +331,104 @@ export async function getGameResults(lobbyId: number) {
   })
 
   return participants
+}
+
+// Quiz management functions
+export async function findQuizById(quizId: number) {
+  return prisma.quiz.findUnique({
+    where: { id: quizId },
+  });
+}
+
+export async function updateQuiz(quizId: number, title: string, description: string, isPublic: boolean) {
+  return prisma.quiz.update({
+    where: { id: quizId },
+    data: {
+      title,
+      description,
+      isPublic,
+    },
+  });
+}
+
+export async function invalidateQuestionsForQuiz(quizId: number) {
+  return prisma.question.updateMany({
+    where: { quizId },
+    data: { valid: false },
+  });
+}
+
+export async function updateQuestion(questionId: number, data: { 
+  questionText: string, 
+  image?: string, 
+  orderNum: number, 
+  questionType: string,
+  valid: boolean
+}) {
+  return prisma.question.update({
+    where: { id: questionId },
+    data,
+  });
+}
+
+export async function createQuestion(quizId: number, data: { 
+  questionText: string, 
+  image?: string, 
+  orderNum: number, 
+  questionType: string 
+}) {
+  return prisma.question.create({
+    data: {
+      quizId,
+      ...data,
+    },
+  });
+}
+
+export async function invalidateAnswersForQuestion(questionId: number) {
+  return prisma.answer.updateMany({
+    where: { questionId },
+    data: { valid: false },
+  });
+}
+
+export async function updateAnswer(answerId: number, data: {
+  answerText: string,
+  isCorrect: boolean,
+  valid: boolean
+}) {
+  return prisma.answer.update({
+    where: { id: answerId },
+    data,
+  });
+}
+
+export async function createAnswer(questionId: number, data: {
+  answerText: string,
+  isCorrect: boolean
+}) {
+  return prisma.answer.create({
+    data: {
+      questionId,
+      ...data,
+    },
+  });
+}
+
+export async function softDeleteQuiz(quizId: number) {
+  return prisma.quiz.update({
+    where: { id: quizId },
+    data: { valid: false },
+  });
+}
+
+export async function createNewQuiz(creatorId: number, title: string, description: string, isPublic: boolean) {
+  return prisma.quiz.create({
+    data: {
+      title,
+      description,
+      creatorId,
+      isPublic,
+    },
+  });
 }

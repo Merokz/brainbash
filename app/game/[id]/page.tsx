@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useParams } from 'next/navigation'
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -9,145 +10,161 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
-import { pusherClient, CHANNELS, EVENTS } from "@/lib/pusher-service"
+import { getPusherClient, CHANNELS, EVENTS } from "@/lib/pusher-client"
 
-export default function GamePage({ params }: { params: { id: string } }) {
-  const [token, setToken] = useState<string | null>(null)
-  const [gameState, setGameState] = useState<"waiting" | "question" | "results" | "conclusion">("waiting")
-  const [quiz, setQuiz] = useState<any>(null)
-  const [currentQuestion, setCurrentQuestion] = useState<any>(null)
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0)
-  const [timeLeft, setTimeLeft] = useState(0)
-  const [selectedAnswers, setSelectedAnswers] = useState<number[]>([])
-  const [openAnswer, setOpenAnswer] = useState("")
-  const [results, setResults] = useState<any>(null)
-  const [conclusion, setConclusion] = useState<any>(null)
-  const [submittedAnswer, setSubmittedAnswer] = useState<boolean>(false)
-  const router = useRouter()
+export default function GamePage() {
+  const params = useParams<{ id: string }>();
+  const [token, setToken] = useState<string | null>(null);
+  const [gameState, setGameState] = useState<"waiting" | "question" | "results" | "conclusion">("waiting");
+  const [quiz, setQuiz] = useState<any>(null);
+  const [currentQuestion, setCurrentQuestion] = useState<any>(null);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [initialTimeToAnswer, setInitialTimeToAnswer] = useState(30);
+  const [selectedAnswers, setSelectedAnswers] = useState<number[]>([]);
+  const [openAnswer, setOpenAnswer] = useState("");
+  const [results, setResults] = useState<any>(null);
+  const [conclusion, setConclusion] = useState<any>(null);
+  const [submittedAnswer, setSubmittedAnswer] = useState<boolean>(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     // Get participant token from localStorage
-    const storedToken = localStorage.getItem("participant_token")
-    const storedLobbyId = localStorage.getItem("lobby_id")
+    const storedToken = localStorage.getItem("participant_token");
+    const storedLobbyId = localStorage.getItem("lobby_id");
 
     if (!storedToken || storedLobbyId !== params.id) {
       // Redirect to home if no token or wrong lobby
-      router.push("/")
-      return
+      router.push("/");
+      return;
     }
 
-    setToken(storedToken)
+    setToken(storedToken);
 
     // Set up Pusher channels
-    const gameChannel = pusherClient.subscribe(CHANNELS.game(params.id))
+    const pusherClient = getPusherClient();
+    const gameChannel = pusherClient.subscribe(CHANNELS.game(params.id));
     
     // Listen for game start
     gameChannel.bind(EVENTS.GAME_STARTED, (data: any) => {
-      setQuiz(data.quiz)
-      setGameState("waiting") // Wait for the first question
-    })
+      if (data.quiz && !data.hostView) {
+        setQuiz(data.quiz);
+        setGameState("waiting"); // Wait for the first question
+      }
+    });
     
     // Listen for new questions
     gameChannel.bind(EVENTS.QUESTION_STARTED, (data: any) => {
-      setCurrentQuestion(data.question)
-      setCurrentQuestionIndex(data.questionIndex)
-      setTimeLeft(data.timeToAnswer || 30)
-      setSelectedAnswers([])
-      setOpenAnswer("")
-      setSubmittedAnswer(false)
-      setGameState("question")
+      // Clear any previous timers
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+      
+      setCurrentQuestion(data.question);
+      setCurrentQuestionIndex(data.questionIndex);
+      setInitialTimeToAnswer(data.timeToAnswer || 30);
+      setTimeLeft(data.timeToAnswer || 30);
+      setSelectedAnswers([]);
+      setOpenAnswer("");
+      setSubmittedAnswer(false);
+      setGameState("question");
       
       // Start countdown timer
-      const interval = setInterval(() => {
+      timerRef.current = setInterval(() => {
         setTimeLeft(prev => {
           if (prev <= 1) {
-            clearInterval(interval)
+            clearInterval(timerRef.current!);
             if (!submittedAnswer) {
               // Auto-submit timeout if no answer was given
-              handleTimedOut()
+              handleTimedOut();
             }
-            return 0
+            return 0;
           }
-          return prev - 1
-        })
-      }, 1000)
-      
-      // Clean up timer
-      return () => clearInterval(interval)
-    })
+          return prev - 1;
+        });
+      }, 1000);
+    });
     
     // Listen for question ending
     gameChannel.bind(EVENTS.QUESTION_ENDED, (data: any) => {
-      setGameState("results")
+      // Clear the timer if it's still running
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+      
+      setGameState("results");
       setResults({
-        correct: data.correct,
         correctAnswers: data.correctAnswers,
-        yourAnswers: data.yourAnswers,
-        score: data.score,
-        explanation: data.explanation,
-      })
+        isLastQuestion: data.isLastQuestion
+      });
       
       // After a few seconds, go back to waiting for the next question
       setTimeout(() => {
         if (data.isLastQuestion) {
-          // If it was the last question, wait for the game conclusion
-          // The server will send a GAME_ENDED event
+          // If it was the last question, stay at results until GAME_ENDED is received
         } else {
-          setGameState("waiting")
+          setGameState("waiting");
         }
-      }, 5000)
-    })
+      }, 5000);
+    });
     
     // Listen for game end
     gameChannel.bind(EVENTS.GAME_ENDED, (data: any) => {
-      setGameState("conclusion")
+      setGameState("conclusion");
       setConclusion({
         rank: data.yourRank,
         score: data.yourScore,
         totalParticipants: data.totalParticipants,
-        topPlayers: data.topPlayers,
-      })
-    })
+        topPlayers: data.topPlayers || [],
+      });
+    });
     
     // Clean up on unmount
     return () => {
-      pusherClient.unsubscribe(CHANNELS.game(params.id))
-    }
-  }, [params.id, router, submittedAnswer])
+      pusherClient.unsubscribe(CHANNELS.game(params.id));
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [params.id, router]);
 
   // Handle answer selection
   const handleAnswerSelect = (answerId: number) => {
+    if (submittedAnswer) return;
+    
     if (currentQuestion?.questionType === "MULTIPLE_CHOICE") {
       // For multiple choice, toggle the selected answer
       setSelectedAnswers((prev) =>
         prev.includes(answerId) ? prev.filter((id) => id !== answerId) : [...prev, answerId]
-      )
+      );
     } else {
       // For single choice, replace the selected answer
-      setSelectedAnswers([answerId])
+      setSelectedAnswers([answerId]);
     }
-  }
+  };
 
   // Handle answer submission
   const handleSubmitAnswer = async () => {
-    if (submittedAnswer) return
+    if (submittedAnswer) return;
     
     try {
-      setSubmittedAnswer(true)
+      setSubmittedAnswer(true);
       
       // Prepare the answers data
-      let answerId = null
+      let answerId = null;
       if (currentQuestion?.questionType === "OPEN_ENDED") {
-        // Submit open-ended answer as text
-        // This would be handled differently in a real app
+        // For open-ended questions, we'll send the text response
+        // We'd handle this differently in a real app
       } else if (selectedAnswers.length > 0) {
         // For single choice, use the first (and only) answer
         if (currentQuestion?.questionType === "SINGLE_CHOICE" || 
             currentQuestion?.questionType === "TRUE_FALSE") {
-          answerId = selectedAnswers[0]
+          answerId = selectedAnswers[0];
         } else {
-          // For multiple choice, we'd need special handling on the server
-          answerId = selectedAnswers[0] // simplified for now
+          // For multiple choice, we need special handling
+          // For simplicity, just sending the first selected answer
+          answerId = selectedAnswers[0];
         }
       }
       
@@ -161,25 +178,25 @@ export default function GamePage({ params }: { params: { id: string } }) {
         body: JSON.stringify({
           questionId: currentQuestion.id,
           answerId: answerId,
-          timeToAnswer: 30 - timeLeft,
+          timeToAnswer: initialTimeToAnswer - timeLeft,
           openAnswer: currentQuestion?.questionType === "OPEN_ENDED" ? openAnswer : undefined
         })
-      })
+      });
       
       if (!response.ok) {
-        console.error("Failed to submit answer:", await response.text())
+        console.error("Failed to submit answer:", await response.text());
       }
     } catch (error) {
-      console.error("Error submitting answer:", error)
+      console.error("Error submitting answer:", error);
     }
-  }
+  };
   
   // Handle timeout - no answer submitted in time
   const handleTimedOut = async () => {
-    if (submittedAnswer) return
+    if (submittedAnswer) return;
     
     try {
-      setSubmittedAnswer(true)
+      setSubmittedAnswer(true);
       
       // Submit a timeout to the server
       const response = await fetch(`/api/lobbies/${params.id}/answer`, {
@@ -191,18 +208,18 @@ export default function GamePage({ params }: { params: { id: string } }) {
         body: JSON.stringify({
           questionId: currentQuestion.id,
           answerId: null,
-          timeToAnswer: 30,
+          timeToAnswer: initialTimeToAnswer,
           timedOut: true
         })
-      })
+      });
       
       if (!response.ok) {
-        console.error("Failed to submit timeout:", await response.text())
+        console.error("Failed to submit timeout:", await response.text());
       }
     } catch (error) {
-      console.error("Error submitting timeout:", error)
+      console.error("Error submitting timeout:", error);
     }
-  }
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-muted p-4">
@@ -228,7 +245,7 @@ export default function GamePage({ params }: { params: { id: string } }) {
                   <div className="text-sm font-medium">Time remaining</div>
                   <div className="text-sm font-medium">{timeLeft}s</div>
                 </div>
-                <Progress value={(timeLeft / 30) * 100} />
+                <Progress value={(timeLeft / initialTimeToAnswer) * 100} />
               </div>
 
               <h2 className="text-xl font-bold mb-6">{currentQuestion.questionText}</h2>
@@ -304,23 +321,24 @@ export default function GamePage({ params }: { params: { id: string } }) {
         {gameState === "results" && results && (
           <Card className="w-full max-w-md">
             <CardContent className="pt-6 text-center py-8">
-              <div className={`text-2xl font-bold mb-4 ${results.correct ? "text-green-500" : "text-red-500"}`}>
-                {results.correct ? "Correct!" : "Incorrect!"}
+              <div className="text-2xl font-bold mb-4">
+                Question Ended
               </div>
-              <div className="mb-4">
-                {results.correctAnswers && (
-                  <>
-                    The correct answer was: <span className="font-bold">{results.correctAnswers.map((a: any) => a.answerText).join(", ")}</span>
-                  </>
-                )}
-              </div>
-              <div className="text-xl">
-                You earned <span className="font-bold">{results.score}</span> points
-              </div>
-              {results.explanation && (
-                <div className="mt-4 text-sm text-muted-foreground">{results.explanation}</div>
+              
+              {results.correctAnswers && (
+                <div className="mb-4">
+                  The correct answer was: 
+                  <span className="font-bold block mt-2">
+                    {results.correctAnswers.map((a: any) => a.answerText).join(", ")}
+                  </span>
+                </div>
               )}
-              <div className="mt-6 text-sm text-muted-foreground">Next question coming up...</div>
+              
+              <div className="mt-6 text-sm text-muted-foreground">
+                {results.isLastQuestion 
+                  ? "Finalizing game results..." 
+                  : "Next question coming up..."}
+              </div>
             </CardContent>
           </Card>
         )}
@@ -329,6 +347,7 @@ export default function GamePage({ params }: { params: { id: string } }) {
           <Card className="w-full max-w-md">
             <CardContent className="pt-6 text-center py-8">
               <h2 className="text-2xl font-bold mb-6">Game Conclusion</h2>
+              
               <div className="mb-6">
                 <div className="text-lg">
                   Your Rank:{" "}
@@ -364,5 +383,5 @@ export default function GamePage({ params }: { params: { id: string } }) {
         )}
       </div>
     </div>
-  )
+  );
 }

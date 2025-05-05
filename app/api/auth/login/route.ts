@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { prisma } from '@/lib/db';
+import { findUserByCredentials } from '@/lib/db';
 import { comparePasswords, createUserToken } from "@/lib/auth"
 import { cookies } from "next/headers"
 
@@ -7,18 +7,8 @@ import { cookies } from "next/headers"
 
 export async function POST(request: Request) {
   try {
-    const { username, password } = await request.json()
-
-    // Find user
-    const user = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { username },
-          { email: username }, // Allow login with email too
-        ],
-        valid: true,
-      },
-    })
+    const { username, password } = await request.json()    // Find user
+    const user = await findUserByCredentials(username)
 
     if (!user) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
