@@ -18,7 +18,6 @@ export default async function Dashboard() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <DashboardHeader user={user} />
       <main className="flex-1 container py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Dashboard</h1>

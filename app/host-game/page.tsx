@@ -87,7 +87,6 @@ export default function HostGame() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <DashboardHeader user={user} />
       <main className="flex-1 container py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Host a Game</h1>

@@ -16,7 +16,7 @@ import Image from "next/image";
 interface DashboardHeaderProps {
   user: {
     username: string
-  }
+  } | null
 }
 
 export function DashboardHeader({ user }: DashboardHeaderProps) {
@@ -42,30 +42,43 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
           </Link>
         </div>
         <div className="flex flex-1 items-center justify-end space-x-4">
-          <nav className="flex items-center space-x-2">
-            <Link href="/dashboard">
-              <Button variant="ghost">Dashboard</Button>
-            </Link>
-            <Link href="/create-quiz">
-              <Button variant="ghost">Create Quiz</Button>
-            </Link>
-            <Link href="/host-game">
-              <Button variant="ghost">Host Game</Button>
-            </Link>
-          </nav>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="ml-2">
-                {user.username}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Settings</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {user ? (
+            <>
+              <nav className="flex items-center space-x-2">
+                <Link href="/dashboard">
+                  <Button variant="ghost">Dashboard</Button>
+                </Link>
+                <Link href="/create-quiz">
+                  <Button variant="ghost">Create Quiz</Button>
+                </Link>
+                <Link href="/host-game">
+                  <Button variant="ghost">Host Game</Button>
+                </Link>
+              </nav>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="ml-2">
+                    {user.username}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem>Profile</DropdownMenuItem>
+                  <DropdownMenuItem>Settings</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          ) : (
+            <nav className="flex items-center space-x-2">
+              <Link href="/login">
+                <Button variant="ghost">Login</Button>
+              </Link>
+              <Link href="/register">
+                <Button variant="ghost">Register</Button>
+              </Link>
+            </nav>
+          )}
         </div>
       </div>
     </header>
