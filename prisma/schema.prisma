@@ -28,6 +28,12 @@ model Quiz {
   title       String     @map("title")
   description String?    @map("description")
   creatorId   Int        @map("creator_id")
+  
+  version      Int        @default(1) @map("version")
+  parentQuiz   Quiz?      @relation("QuizVersions", fields: [parentQuizId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  parentQuizId Int?       @map("parent_quiz_id")
+  versions     Quiz[]     @relation("QuizVersions")
+
   isPublic    Boolean    @default(false) @map("is_public")
   createdAt   DateTime   @default(now()) @map("created_at")
   updatedAt   DateTime   @updatedAt @map("updated_at")
