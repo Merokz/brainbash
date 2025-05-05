@@ -101,6 +101,17 @@ CREATE TABLE [dbo].[participant_answers] (
     CONSTRAINT [participant_answers_pkey] PRIMARY KEY CLUSTERED ([id])
 );
 
+-- CreateTable
+CREATE TABLE [dbo].[sysdiagrams] (
+    [name] NVARCHAR(128) NOT NULL,
+    [principal_id] INT NOT NULL,
+    [diagram_id] INT NOT NULL IDENTITY(1,1),
+    [version] INT,
+    [definition] VARBINARY(max),
+    CONSTRAINT [PK__sysdiagr__C2B05B617DBE3513] PRIMARY KEY CLUSTERED ([diagram_id]),
+    CONSTRAINT [UK_principal_name] UNIQUE NONCLUSTERED ([principal_id],[name])
+);
+
 -- AddForeignKey
 ALTER TABLE [dbo].[quizzes] ADD CONSTRAINT [quizzes_creator_id_fkey] FOREIGN KEY ([creator_id]) REFERENCES [dbo].[users]([id]) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
@@ -111,25 +122,25 @@ ALTER TABLE [dbo].[questions] ADD CONSTRAINT [questions_quiz_id_fkey] FOREIGN KE
 ALTER TABLE [dbo].[answers] ADD CONSTRAINT [answers_question_id_fkey] FOREIGN KEY ([question_id]) REFERENCES [dbo].[questions]([id]) ON DELETE NO ACTION ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE [dbo].[lobbies] ADD CONSTRAINT [lobbies_host_id_fkey] FOREIGN KEY ([host_id]) REFERENCES [dbo].[users]([id]) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
 ALTER TABLE [dbo].[lobbies] ADD CONSTRAINT [lobbies_quiz_id_fkey] FOREIGN KEY ([quiz_id]) REFERENCES [dbo].[quizzes]([id]) ON DELETE NO ACTION ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE [dbo].[lobbies] ADD CONSTRAINT [lobbies_host_id_fkey] FOREIGN KEY ([host_id]) REFERENCES [dbo].[users]([id]) ON DELETE NO ACTION ON UPDATE NO ACTION;
+ALTER TABLE [dbo].[participants] ADD CONSTRAINT [participants_lobby_id_fkey] FOREIGN KEY ([lobby_id]) REFERENCES [dbo].[lobbies]([id]) ON DELETE NO ACTION ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE [dbo].[participants] ADD CONSTRAINT [participants_user_id_fkey] FOREIGN KEY ([user_id]) REFERENCES [dbo].[users]([id]) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
-ALTER TABLE [dbo].[participants] ADD CONSTRAINT [participants_lobby_id_fkey] FOREIGN KEY ([lobby_id]) REFERENCES [dbo].[lobbies]([id]) ON DELETE NO ACTION ON UPDATE CASCADE;
+ALTER TABLE [dbo].[participant_answers] ADD CONSTRAINT [participant_answers_answer_id_fkey] FOREIGN KEY ([answer_id]) REFERENCES [dbo].[answers]([id]) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
 ALTER TABLE [dbo].[participant_answers] ADD CONSTRAINT [participant_answers_participant_id_fkey] FOREIGN KEY ([participant_id]) REFERENCES [dbo].[participants]([id]) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
 ALTER TABLE [dbo].[participant_answers] ADD CONSTRAINT [participant_answers_question_id_fkey] FOREIGN KEY ([question_id]) REFERENCES [dbo].[questions]([id]) ON DELETE NO ACTION ON UPDATE NO ACTION;
-
--- AddForeignKey
-ALTER TABLE [dbo].[participant_answers] ADD CONSTRAINT [participant_answers_answer_id_fkey] FOREIGN KEY ([answer_id]) REFERENCES [dbo].[answers]([id]) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 COMMIT TRAN;
 
