@@ -10,25 +10,22 @@ import { useGameTimer } from "@/hooks/game-timer";
 import { LobbyDisplayCard } from "@/components/game-host/LobbyDisplayCard";
 import { GameWaitingCard } from "@/components/game-host/GameWaitingCard";
 import { QuestionInProgressCard } from "@/components/game-host/QuestionInProgressCard";
-import { QuestionResultsCard } from "@/components/game-host/QuestionResultsCard";
+import { ParticipantAnswer, QuestionResultsCard } from "@/components/game-host/QuestionResultsCard";
 import { GameConclusionCard } from "@/components/game-host/GameConclusionCard";
 import { GameSidebar } from "@/components/game-host/GameSidebar";
-import { Timer } from "lucide-react"; // Keep Timer if used directly in this page
+import { Timer } from "lucide-react";
 
-// Define types for participant answers (can be moved to a shared types file)
-interface ParticipantAnswer {
-  participantId: number;
-  questionId: number;
-  answerId: number | string | null; // Ensure this matches Answer ID type
-  timeToAnswer: number;
-}
 
 export default function GameHostPage() {
   const params = useParams<{ id: string }>();
   const [user, setUser] = useState<any>(null);
   const [lobbyData, setLobbyData] = useState<any>(null);
   const [quiz, setQuiz] = useState<any>(null);
-  const [participants, setParticipants] = useState<any[]>([]);
+  // Ensure participants state matches the structure expected by child components
+  // or adapt the data from Pusher events.
+  // Pusher member.id is `user-${id}` or `participant-${id}`
+  // Pusher member.info is { name: "username", isHost: boolean }
+  const [participants, setParticipants] = useState<Array<{ id: string | number; username: string; score: number; isHost: boolean }>>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(-1);
   const [gameState, setGameState] = useState<"lobby" | "waiting" | "question" | "results" | "conclusion">("lobby");
   const [loading, setLoading] = useState(true);
@@ -59,9 +56,12 @@ export default function GameHostPage() {
           if (data.quiz) {
             setQuiz(data.quiz);
           }
+          // Initial participants from DB can be set here, but Pusher events will soon update it
+          // For simplicity, we'll let Pusher events be the primary source for the live list.
           if (data.participants) {
-            setParticipants(data.participants);
+            setParticipants(data.participants.map((p: any) => ({ ...p, id: p.id, username: p.username, score: p.score || 0, isHost: p.userId === data.hostId })));
           }
+          
           if (data.state !== "IN_LOBBY" && data.state !== "CONCLUDED") {
             setCurrentQuestionIndex(data.currentQuestionIdx ?? -1);
             if (data.state === "IN_GAME") {
@@ -69,10 +69,8 @@ export default function GameHostPage() {
                 setGameState("question");
                 setServerStartTime(data.questionStartedAt);
               } else if (data.currentQuestionIdx !== null && data.currentQuestionIdx !== -1) {
-                 // If questionStartedAt is null, but we have an index, it means results were shown
                 setGameState("results");
               } else {
-                // Default to waiting if game started but no question active/ended
                 setGameState("waiting");
               }
             }
@@ -95,22 +93,43 @@ export default function GameHostPage() {
     fetchData();
 
     const pusherClient = getPusherClient();
-    const lobbyChannelName = CHANNELS.lobby(params.id);
+    // CHANNELS.lobby(params.id) should return 'presence-lobby-...'
+    const lobbyChannelName = CHANNELS.lobby(params.id); 
     const gameChannelName = CHANNELS.game(params.id);
 
     const lobbyChannel = pusherClient.subscribe(lobbyChannelName);
     const gameChannel = pusherClient.subscribe(gameChannelName);
 
-    lobbyChannel.bind(EVENTS.PARTICIPANT_JOINED, (data: any) => {
+    // --- Start of Pusher Presence Event Handling ---
+    lobbyChannel.bind('pusher:subscription_succeeded', (members: any) => {
+      const initialParticipants: Array<{ id: string; username: string; score: number; isHost: boolean }> = [];
+      members.each((member: { id: string; info: { name: string; isHost: boolean } }) => {
+        initialParticipants.push({
+          id: member.id, // this is the user_id from auth, e.g., "participant-123"
+          username: member.info.name,
+          score: 0, // Initialize score, will be updated by ANSWER_SUBMITTED
+          isHost: member.info.isHost,
+        });
+      });
+      setParticipants(initialParticipants);
+    });
+
+    lobbyChannel.bind('pusher:member_added', (member: { id: string; info: { name: string; isHost: boolean } }) => {
       setParticipants(prev => {
-        if (prev.some(p => p.id === data.participant.id)) return prev;
-        return [...prev, data.participant];
+        if (prev.some(p => p.id === member.id)) return prev; // Already present
+        return [...prev, {
+          id: member.id,
+          username: member.info.name,
+          score: 0,
+          isHost: member.info.isHost,
+        }];
       });
     });
 
-    lobbyChannel.bind(EVENTS.PARTICIPANT_LEFT, (data: any) => {
-      setParticipants(prev => prev.filter(p => p.id !== data.participantId));
+    lobbyChannel.bind('pusher:member_removed', (member: { id: string; info: { name: string; isHost: boolean } }) => {
+      setParticipants(prev => prev.filter(p => p.id !== member.id));
     });
+    // --- End of Pusher Presence Event Handling ---
 
     // GAME_STARTED event transitions from lobby UI to game waiting UI
     lobbyChannel.bind(EVENTS.GAME_STARTED, (data: any) => {
@@ -124,17 +143,22 @@ export default function GameHostPage() {
     
     gameChannel.bind(EVENTS.ANSWER_SUBMITTED, (data: any) => {
       setParticipants(prev =>
-        prev.map(p =>
-          p.id === data.participantId
-            ? { ...p, score: data.newScore } // Ensure score is updated
-            : p
-        )
+        prev.map(p => {
+          // Match by Pusher's member.id (e.g., "participant-101")
+          // data.participantId from your backend might be the numeric ID or the string ID.
+          // Ensure your EVENTS.ANSWER_SUBMITTED payload includes a consistent ID.
+          // Assuming data.participantId is the string ID like "participant-123" or "user-1"
+          if (p.id === data.participantId) { 
+            return { ...p, score: data.newScore }; // Ensure score is updated
+          }
+          return p;
+        })
       );
       if (data.answer) { // Ensure data.answer exists
         setParticipantAnswers(prev => [
           ...prev,
           {
-            participantId: data.participantId,
+            participantId: data.participantId, // Store the ID used for matching
             questionId: data.questionId,
             answerId: data.answer.answerId, // Assuming data.answer contains answerId
             timeToAnswer: data.answer.timeToAnswer, // Assuming data.answer contains timeToAnswer
@@ -164,7 +188,7 @@ export default function GameHostPage() {
       pusherClient.unsubscribe(lobbyChannelName);
       pusherClient.unsubscribe(gameChannelName);
     };
-  }, [params.id]); // Removed router from dependencies as it's stable
+  }, [params.id]);
 
   // Monitor timeLeft for auto-transitioning to results
   useEffect(() => {
@@ -277,13 +301,6 @@ export default function GameHostPage() {
     }
   };
   
-  // This useEffect might be redundant if QUESTION_STARTED event clears answers
-  // useEffect(() => {
-  //   if (gameState === "question") {
-  //     setParticipantAnswers([]);
-  //   }
-  // }, [gameState, currentQuestionIndex]);
-
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -323,6 +340,7 @@ export default function GameHostPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
+      <DashboardHeader user={user} />
       <main className="flex-1 container py-8">
         <div className="mb-8 flex justify-between items-center">
           <div>
@@ -391,13 +409,14 @@ export default function GameHostPage() {
             {gameState === "conclusion" && (
               <GameConclusionCard
                 quizTitle={currentQuizTitle}
-                participants={participants}
+                participants={participants} // Ensure this matches the expected type in GameConclusionCard
                 onReturnToHome={handleReturnToHome}
               />
             )}
           </div>
 
           <div>
+            {/* Ensure GameSidebar expects participants with id: string (Pusher user_id) */}
             <GameSidebar participants={participants} gameState={gameState} />
           </div>
         </div>
