@@ -1,5 +1,6 @@
 import { PrismaClient, Prisma, Quiz } from '@prisma/client'; // Import Prisma and Quiz
 import { cacheExtension, cacheClient } from './cache';
+import { version } from 'os';
 
 // Prevent multiple instances of Prisma Client in development
 declare global {
@@ -320,61 +321,14 @@ export async function getParticipantByIdAndLobbyId(participantId: number, lobbyI
 }
 
 // Game functions
-// export async function startGame(lobbyId: number) {
-//   // fetch lobby and its quiz, questions, and answers
-//   const lobby = await prisma.lobby.findUnique({
-//     where: { id: lobbyId },
-//     include: {
-//       quiz: {
-//         include: {
-//           questions: { include: { answers: true } }
-//         }
-//       }
-//     }
-//   });
-//   if (!lobby) {
-//     throw new Error(`Lobby ${lobbyId} not found`);
-//   }
-//   const original = lobby.quiz;
-//   // determine root quiz for versioning
-//   const rootQuizId = original.parentQuizId ?? original.id;
-//   // create a versioned clone of the quiz, questions, and answers
-//   const cloned = await prisma.quiz.create({
-//     data: {
-//       title: original.title,
-//       description: original.description,
-//       creatorId: original.creatorId,
-//       isPublic: original.isPublic,
-//       valid: true,
-//       version: original.version + 1,
-//       parentQuizId: rootQuizId,
-//       questions: {
-//         create: (original.questions as any[]).map((q: any) => ({
-//           questionText: q.questionText,
-//           image: q.image,
-//           orderNum: q.orderNum,
-//           questionType: q.questionType,
-//           valid: q.valid,
-//           answers: {
-//             create: (q.answers as any[]).map((a: any) => ({
-//               answerText: a.answerText,
-//               isCorrect: a.isCorrect,
-//               valid: a.valid,
-//             }))
-//           }
-//         }))
-//       }
-//     }
-//   });
-//   // update lobby to use the cloned quiz version
-//   return prisma.lobby.update({
-//     where: { id: lobbyId },
-//     data: {
-//       state: "IN_GAME",
-//       quizId: cloned.id,
-//     },
-//   });
-// }
+export async function startGame(lobbyId: number) {
+  return prisma.lobby.update({
+    where: { id: lobbyId },
+    data: {
+      state: "IN_GAME",
+    },
+  });
+}
 
 export async function endGame(lobbyId: number) {
   return prisma.lobby.update({
@@ -505,13 +459,15 @@ export async function softDeleteQuiz(quizId: number) {
   });
 }
 
-export async function createNewQuiz(creatorId: number, title: string, description: string, isPublic: boolean) {
+export async function createNewQuiz(creatorId: number, title: string, description: string, isPublic: boolean, version: number = 1) {
   return prisma.quiz.create({
     data: {
       title,
       description,
       creatorId,
       isPublic,
+      version,
+      valid: true
     },
   });
 }

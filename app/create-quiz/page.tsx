@@ -27,7 +27,17 @@ export default function CreateQuiz() {
       <main className="flex-1 container py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Create New Quiz</h1>
-          <p className="text-muted-foreground">Create a new quiz with questions and answers</p>
+          <p className="text-muted-foreground">Create a quiz with up to 8 questions</p>
+        </div>
+
+        <div className="bg-muted p-4 rounded-lg mb-8">
+          <h2 className="text-lg font-medium mb-2">Quiz Guidelines:</h2>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Each quiz can have up to 8 questions</li>
+            <li>Support for multiple choice, single choice, true/false, and open-ended questions</li>
+            <li>You can upload one image per question (optional)</li>
+            <li>Make quizzes public to allow others to use them for games</li>
+          </ul>
         </div>
 
         <QuizForm />

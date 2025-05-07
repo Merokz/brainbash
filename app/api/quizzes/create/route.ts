@@ -15,6 +15,15 @@ export async function POST(request: Request) {
 
     const { title, description, isPublic, questions } = await request.json()
 
+    // Validate questions count
+    if (!questions || !Array.isArray(questions) || questions.length === 0) {
+      return NextResponse.json({ error: "At least one question is required" }, { status: 400 })
+    }
+
+    if (questions.length > 8) {
+      return NextResponse.json({ error: "Maximum of 8 questions allowed per quiz" }, { status: 400 })
+    }
+
     const quiz = await createNewQuiz(
       user.id,
       title,

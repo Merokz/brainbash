@@ -148,13 +148,20 @@ export function QuestionForm({ question, index, onChange, onRemove }: QuestionFo
   }
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Question {index + 1}</CardTitle>
+    <Card className="border-2 relative">
+      <div className="absolute top-2 right-2 flex items-center gap-2">
+        <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
+          Question {index + 1}/8
+        </span>
         <Button variant="ghost" size="icon" onClick={onRemove} className="h-8 w-8">
           <X className="h-4 w-4" />
         </Button>
+      </div>
+      
+      <CardHeader className="pt-8">
+        <CardTitle>Question {index + 1}</CardTitle>
       </CardHeader>
+      
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor={`question-${index}`}>Question Text</Label>

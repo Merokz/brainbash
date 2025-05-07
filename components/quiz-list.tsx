@@ -76,9 +76,14 @@ export function QuizList({ quizzes }: QuizListProps) {
           <div>
             <div className="flex items-center gap-2">
               <h3 className="font-medium">{quiz.title}</h3>
-              <Badge variant={quiz.isPublic ? "default" : "outline"}>{quiz.isPublic ? "Public" : "Private"}</Badge>
+              <Badge variant={quiz.isPublic ? "default" : "outline"}>
+                {quiz.isPublic ? "Public" : "Private"}
+              </Badge>
             </div>
-            <p className="text-sm text-muted-foreground">{quiz._count.questions} questions</p>
+            <p className="text-sm text-muted-foreground">
+              {quiz._count.questions}/8 questions
+              {quiz._count.questions < 8 && " • Can add more questions"}
+            </p>
           </div>
           <div className="flex space-x-2">
             <Link href={`/edit-quiz/${quiz.id}`}>
