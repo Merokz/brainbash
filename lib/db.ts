@@ -337,6 +337,9 @@ export async function startGame(lobbyId: number) {
     where: { id: lobbyId },
     data: {
       state: "IN_GAME",
+      // Initialize game state fields
+      currentQuestionIdx: -1,
+      questionStartedAt: null,
     },
   });
 }
@@ -379,6 +382,27 @@ export async function getGameResults(lobbyId: number) {
   })
 
   return participants
+}
+
+// New function to start a question
+export async function startQuestion(lobbyId: number, questionIndex: number) {
+  return prisma.lobby.update({
+    where: { id: lobbyId },
+    data: {
+      currentQuestionIdx: questionIndex,
+      questionStartedAt: new Date(), // Server timestamp
+    }
+  });
+}
+
+// New function to end a question
+export async function endQuestion(lobbyId: number) {
+  return prisma.lobby.update({
+    where: { id: lobbyId },
+    data: {
+      questionStartedAt: null,
+    }
+  });
 }
 
 // Quiz management functions

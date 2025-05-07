@@ -14,23 +14,24 @@ export function getPusherClient() {
       {
         cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER || "eu",
         authEndpoint: '/api/pusher/auth',
-        auth: {
-          headers: {
-            // Include authorization header for participant authentication
-            get authorization() {
-              // Use try-catch to handle cases where localStorage isn't available
-              try {
-                const token = localStorage.getItem('participant_token');
-                return token ? `Bearer ${token}` : '';
-              } catch (e) {
-                console.log("Error accessing localStorage:", e);
-                return '';
-              }
-            }
-          }
-        }
+        enabledTransports: ["ws", "wss"],
+        activityTimeout: 30000,
+        pongTimeout: 15000
       }
     );
+    
+    // Add connection state handlers
+    pusherClientInstance.connection.bind('connected', () => {
+      console.log('Connected to Pusher');
+    });
+    
+    pusherClientInstance.connection.bind('disconnected', () => {
+      console.log('Disconnected from Pusher');
+    });
+    
+    pusherClientInstance.connection.bind('error', (err: any) => {
+      console.error('Pusher connection error:', err);
+    });
   }
   return pusherClientInstance;
 }
