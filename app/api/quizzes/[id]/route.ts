@@ -10,7 +10,8 @@ import {
   updateAnswer, 
   createAnswer, 
   getQuizById,
-  softDeleteQuiz
+  softDeleteQuiz,
+  createQuizVersion
 } from '@/lib/db';
 import { getUserFromToken } from "@/lib/auth"
 import { saveBase64Image } from "@/lib/save-image"
@@ -48,95 +49,47 @@ export async function GET(request: Request, { params }: { params: { id: string }
 
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
   try {
-    const quizId = Number.parseInt(params.id)
-
+    const quizId = Number.parseInt(params.id);
     if (isNaN(quizId)) {
-      return NextResponse.json({ error: "Invalid quiz ID" }, { status: 400 })
+      return NextResponse.json({ error: "Invalid quiz ID" }, { status: 400 });
     }
 
-    const user = await getUserFromToken()
-
+    const user = await getUserFromToken();
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const quiz = await findQuizById(quizId)
-
+    const quiz = await findQuizById(quizId);
     if (!quiz) {
-      return NextResponse.json({ error: "Quiz not found" }, { status: 404 })
+      return NextResponse.json({ error: "Quiz not found" }, { status: 404 });
     }
 
     if (quiz.creatorId !== user.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { title, description, isPublic, questions } = await request.json()
+    const { title, description, isPublic, questions } = await request.json();
 
-    // Update quiz
-    const updatedQuiz = await updateQuiz(quizId, title, description, isPublic)
-
-    // Update questions and answers
-    if (questions && Array.isArray(questions)) {
-      // First, mark all existing questions as invalid
-      await invalidateQuestionsForQuiz(quizId)
-
-      // Then create or update questions
-      for (let i = 0; i < questions.length; i++) {
-        const q = questions[i]
-        let imagePath = "";
-        
-                if (q.image && q.image.startsWith("data:image/")) {
-                  const fileName = `${quiz.id}-${i}`; // or 
-                  imagePath = await saveBase64Image(q.image, fileName);
-                }
-        let question
-        if (q.id) {
-          // Update existing question
-          question = await updateQuestion(q.id, {
-            questionText: q.questionText,
-            image: imagePath,
-            orderNum: i,
-            questionType: q.questionType,
-            valid: true,
-          })
-        } else {
-          // Create new question
-          question = await createQuestion(quizId, {
-            questionText: q.questionText,
-            image: q.image,
-            orderNum: i,
-            questionType: q.questionType,
-          })
-        }
-
-        // Mark all existing answers as invalid
-        await invalidateAnswersForQuestion(question.id)
-
-        // Create or update answers
-        if (q.answers && Array.isArray(q.answers)) {
-          for (const a of q.answers) {
-            if (a.id) {
-              // Update existing answer
-              await updateAnswer(a.id, {
-                answerText: a.answerText,
-                isCorrect: a.isCorrect,
-                valid: true,
-              })
-            } else {
-              // Create new answer
-              await createAnswer(question.id, {
-                answerText: a.answerText,
-                isCorrect: a.isCorrect,
-              })
-            }
-          }
-        }
-      }
+    // Validate questions count
+    if (!questions || !Array.isArray(questions) || questions.length === 0) {
+      return NextResponse.json({ error: "At least one question is required" }, { status: 400 });
     }
 
-    return NextResponse.json(updatedQuiz)
+    if (questions.length > 8) {
+      return NextResponse.json({ error: "Maximum of 8 questions allowed per quiz" }, { status: 400 });
+    }
+
+    // Create a new version instead of updating the existing one
+    const newQuizVersion = await createQuizVersion(quizId, {
+      title,
+      description,
+      isPublic,
+      questions
+    });
+
+    return NextResponse.json(newQuizVersion);
   } catch (error) {
-    console.error("Error updating quiz:", error)
+    console.error("Error updating quiz:", error);
     return NextResponse.json({ error: "Failed to update quiz" }, { status: 500 })
   }
 }
