@@ -81,6 +81,7 @@ model Lobby {
   quizId            Int           @map("quiz_id")
   hostId            Int           @map("host_id")
   state             String        @default("IN_LOBBY") @map("state")
+  isPublic    Boolean    @default(false) @map("is_public")
   joinCode          String        @unique @map("join_code")
   timeToAnswer      Int           @default(30) @map("time_to_answer")
   isRandomOrder     Boolean       @default(false) @map("is_random_order")

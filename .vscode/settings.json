@@ -18,7 +18,13 @@
         "app/login": true,
         "app/register": true,
         "app/reset-password": true,
-        "app/forgot-password": true
+        "app/forgot-password": true,
+        "node_modules/pusher-js/types/src/core": true,
+        "lib/utils.ts": true,
+        "public": true,
+        "styles": true,
+        ".env.example": true,
+        "app/globals.css": true
     },
     "hide-files.files": [
         "tsconfig.json",
@@ -35,6 +41,11 @@
         "app/register",
         "app/reset-password",
         "app/forgot-password",
-        "node_modules/pusher-js/types/src/core"
+        "node_modules/pusher-js/types/src/core",
+        "lib/utils.ts",
+        "public",
+        "styles",
+        ".env.example",
+        "app/globals.css"
     ]
 }

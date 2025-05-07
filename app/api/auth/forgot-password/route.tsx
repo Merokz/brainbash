@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { render } from '@react-email/render';
-import ResetPasswordEmail from "@/components/reset-password-email";
+import ResetPasswordEmail from "@/components/email/reset-password-email";
 import jwt from "jsonwebtoken";
 
 export async function POST(request: Request) {

@@ -209,6 +209,7 @@ export async function getPublicLobbies(): Promise<LobbyPublic[]> {
         quiz: {
           select: {
             title: true,
+            isPublic: true,
           },
         },
         host: {

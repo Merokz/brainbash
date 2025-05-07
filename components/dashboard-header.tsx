@@ -49,14 +49,8 @@ export function DashboardHeader({ user }: DashboardHeaderProps ) {
           {user ? (
             <>
               <nav className="flex items-center space-x-2">
-                <Link href="/dashboard">
-                  <Button variant="ghost">Dashboard</Button>
-                </Link>
-                <Link href="/create-quiz">
-                  <Button variant="ghost">Create Quiz</Button>
-                </Link>
-                <Link href="/host-game">
-                  <Button variant="ghost">Host Game</Button>
+                <Link href="/quiz">
+                  <Button variant="ghost">Quizzes</Button>
                 </Link>
               </nav>
               <DropdownMenu>
