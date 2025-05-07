@@ -11,7 +11,7 @@ export const Header: React.FC = () => (
       style={{ display: "block", margin: "0 auto" }} // Center the image
     />
     <Text style={{ color: theme.colors.muted, fontSize: "14px" }}>
-      Secure password reset
+      secure password reset
     </Text>
   </div>
 );

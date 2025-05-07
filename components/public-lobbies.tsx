@@ -88,8 +88,8 @@ export function PublicLobbies() {
   return (
     <Card id="join-game">
       <CardHeader>
-        <CardTitle>Public Games</CardTitle>
-        <CardDescription>Join an ongoing public quiz game</CardDescription>
+        <CardTitle>public games</CardTitle>
+        <CardDescription>join an ongoing public quiz game</CardDescription>
       </CardHeader>
       <CardContent>
         {loading ? (
@@ -109,24 +109,24 @@ export function PublicLobbies() {
               >
                 <div>
                   <h3 className="font-medium">{lobby.quiz.title}</h3>
-                  <p className="text-sm text-muted-foreground">Hosted by {lobby.host.username}</p>
+                  <p className="text-sm text-muted-foreground">hosted by {lobby.host.username}</p>
                 </div>
                 <div className="text-sm text-muted-foreground">{lobby._count.participants} participants</div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="py-8 text-center text-muted-foreground">No public games available at the moment</div>
+          <div className="py-8 text-center text-muted-foreground">no public games available at the moment</div>
         )}
 
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Join {selectedLobby?.quiz.title}</DialogTitle>
+              <DialogTitle>join {selectedLobby?.quiz.title}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="username">Enter your username</Label>
+                <Label htmlFor="username">enter your username</Label>
                 <Input
                   id="username"
                   value={username}
@@ -135,7 +135,7 @@ export function PublicLobbies() {
                 />
               </div>
               <Button className="w-full" onClick={handleJoinLobby} disabled={!username.trim()}>
-                Join Game
+                join game
               </Button>
             </div>
           </DialogContent>

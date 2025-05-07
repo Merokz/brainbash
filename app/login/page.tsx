@@ -51,8 +51,8 @@ export default function Login() {
       })
 
       if (response.ok) {
-        // Login successful, redirect to dashboard
-        router.push("/dashboard")
+        // Login successful, redirect to home
+        router.push("/")
       } else {
         const errorData = await response.json()
         setError(errorData.error || "Login failed")

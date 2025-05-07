@@ -61,9 +61,9 @@ export function QuizList({ quizzes }: QuizListProps) {
   if (quizzes.length === 0) {
     return (
       <div className="py-8 text-center text-muted-foreground">
-        <p>You haven't created any quizzes yet</p>
+        <p>you haven't created any quizzes yet</p>
         <Link href="/create-quiz" className="mt-4 inline-block">
-          <Button>Create Your First Quiz</Button>
+          <Button>create your first quiz</Button>
         </Link>
       </div>
     )
@@ -77,22 +77,22 @@ export function QuizList({ quizzes }: QuizListProps) {
             <div className="flex items-center gap-2">
               <h3 className="font-medium">{quiz.title}</h3>
               <Badge variant={quiz.isPublic ? "default" : "outline"}>
-                {quiz.isPublic ? "Public" : "Private"}
+                {quiz.isPublic ? "public" : "private"}
               </Badge>
             </div>
             <p className="text-sm text-muted-foreground">
               {quiz._count.questions}/8 questions
-              {quiz._count.questions < 8 && " • Can add more questions"}
+              {quiz._count.questions < 8 && " • can add more questions"}
             </p>
           </div>
           <div className="flex space-x-2">
             <Link href={`/edit-quiz/${quiz.id}`}>
               <Button variant="outline" size="sm">
-                Edit
+                edit
               </Button>
             </Link>
             <Button variant="outline" size="sm" onClick={() => setDeleteQuizId(quiz.id)}>
-              Delete
+              delete
             </Button>
           </div>
         </div>
@@ -101,16 +101,16 @@ export function QuizList({ quizzes }: QuizListProps) {
       <AlertDialog open={!!deleteQuizId} onOpenChange={(open) => !open && setDeleteQuizId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the quiz and all associated questions and
+              this action cannot be undone. this will permanently delete the quiz and all associated questions and
               answers.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteQuiz} disabled={isDeleting}>
-              {isDeleting ? "Deleting..." : "Delete"}
+              {isDeleting ? "deleting..." : "delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

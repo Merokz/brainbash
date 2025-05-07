@@ -25,11 +25,11 @@ export function GameConclusionCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-3xl">Quiz Over!</CardTitle>
-        <CardDescription>Here are the final results for "{quizTitle}".</CardDescription>
+        <CardTitle className="text-3xl">quiz over!</CardTitle>
+        <CardDescription>here are the final results for "{quizTitle}".</CardDescription>
       </CardHeader>
       <CardContent>
-        <h2 className="text-2xl font-bold mb-6 text-center">🏆 Final Leaderboard 🏆</h2>
+        <h2 className="text-2xl font-bold mb-6 text-center">final leaderboard</h2>
         <div className="space-y-3 mb-8 max-w-md mx-auto">
           {sortedParticipants.map((participant, index) => (
             <div
@@ -58,7 +58,7 @@ export function GameConclusionCard({
         </div>
         <div className="flex justify-center">
           <Button onClick={onReturnToHome} size="lg" variant="default">
-            Return to Home
+            return to home
           </Button>
         </div>
       </CardContent>

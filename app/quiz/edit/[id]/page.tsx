@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState, use } from "react";
-import { DashboardHeader } from "@/components/dashboard-header"
 import { Quiz } from "@prisma/client"
 import { QuizForm } from "@/components/quiz/quiz-form";
 
@@ -33,7 +32,7 @@ export default function EditQuiz(props: { params: Promise<{ id: string}> }) {
     <div className="flex min-h-screen flex-col">
       <main className="flex-1 container py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold">Edit Quiz</h1>
+          <h1 className="text-3xl font-bold">edit quiz</h1>
         </div>
 
         <QuizForm quiz={quiz} />
