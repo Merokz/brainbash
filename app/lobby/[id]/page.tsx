@@ -136,7 +136,6 @@ export default function LobbyPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <DashboardHeader user={user} />
       <main className="flex-1 container py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Lobby: {lobby.quiz.title}</h1>

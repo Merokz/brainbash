@@ -3,7 +3,8 @@ import { startGame, getQuizById, getLobbyById } from "@/lib/db";
 import { getUserFromToken } from "@/lib/auth";
 import { pusherServer, CHANNELS, EVENTS } from "@/lib/pusher-service";
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const user = await getUserFromToken();
     if (!user) {
@@ -18,6 +19,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       return NextResponse.json({ error: "Lobby not found" }, { status: 404 });
     }
     
+    // Check if user is the host
     if (lobby.hostId !== user.id) {
       return NextResponse.json({ error: "Only the host can start the game" }, { status: 403 });
     }
@@ -27,50 +29,43 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     
     // Get the quiz details for the game
     const quiz = await getQuizById(updatedLobby.quizId);
-    if (!quiz) {
-      return NextResponse.json({ error: "Quiz not found" }, { status: 404 });
-    }
     
-    // Create a simplified version of questions without correct answers
-    // for participants
-    const participantQuestions = quiz.questions.map(q => ({
-      id: q.id,
-      questionText: q.questionText,
-      questionType: q.questionType,
-      image: q.image,
-      answers: q.answers.map(a => ({
-        id: a.id,
-        answerText: a.answerText,
+    // Create participant and host views of the quiz
+    const hostView = quiz;
+    
+    const participantView = quiz ? {
+      ...quiz,
+      questions: quiz.questions.map(q => ({
+        ...q,
+        answers: q.answers.map(a => ({
+          id: a.id,
+          answerText: a.answerText,
+          // Don't send correctness info
+        })),
       })),
-    }));
+    } : null;
     
-    // Send the full quiz to the host
+    // Notify all clients (participants and host) that the game has started
     await pusherServer.trigger(
-      CHANNELS.lobby(lobbyId.toString()),
+      CHANNELS.lobby(params.id),
       EVENTS.GAME_STARTED,
       {
-        quiz: quiz,
         hostView: true,
+        quiz: hostView
       }
     );
     
-    // Send the questions without correct answers to participants
+    // Notify game channel (only has participants)
     await pusherServer.trigger(
-      CHANNELS.game(lobbyId.toString()),
+      CHANNELS.game(params.id),
       EVENTS.GAME_STARTED,
       {
-        quiz: {
-          ...quiz,
-          questions: participantQuestions,
-        },
         hostView: false,
+        quiz: participantView
       }
     );
     
-    return NextResponse.json({ 
-      success: true,
-      message: "Game started successfully" 
-    });
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error starting game:", error);
     return NextResponse.json(

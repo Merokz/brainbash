@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -9,6 +9,15 @@ import { DashboardHeader } from "@/components/dashboard-header"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ChevronRight, Timer, AlertCircle } from "lucide-react"
 import { getPusherClient, CHANNELS, EVENTS } from "@/lib/pusher-client"
+import { useGameTimer } from "@/hooks/game-timer";
+
+// Define types for participant answers
+interface ParticipantAnswer {
+  participantId: number;
+  questionId: number;
+  answerId: number | null;
+  timeToAnswer: number;
+}
 
 export default function GameHostPage() {
   const params = useParams<{ id: string }>();
@@ -17,12 +26,17 @@ export default function GameHostPage() {
   const [participants, setParticipants] = useState<any[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(-1);
   const [gameState, setGameState] = useState<"waiting" | "question" | "results" | "conclusion">("waiting");
-  const [timeLeft, setTimeLeft] = useState(30);
   const [loading, setLoading] = useState(true);
-  const [questionStartTime, setQuestionStartTime] = useState<number | null>(null);
-  const [participantAnswers, setParticipantAnswers] = useState<any[]>([]);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const [serverStartTime, setServerStartTime] = useState<string | null>(null);
+  // Add state for participant answers
+  const [participantAnswers, setParticipantAnswers] = useState<ParticipantAnswer[]>([]);
   const router = useRouter();
+
+  // Replace the timeLeft state with the useGameTimer hook result
+  const timeLeft = useGameTimer(
+    serverStartTime,
+    currentQuestionIndex >= 0 ? (quiz?.questions[currentQuestionIndex].timeToAnswer || 30) : 30
+  );
 
   // Fetch initial data and set up Pusher
   useEffect(() => {
@@ -89,8 +103,6 @@ export default function GameHostPage() {
     
     // Handle answers submitted
     gameChannel.bind(EVENTS.ANSWER_SUBMITTED, (data: any) => {
-      setParticipantAnswers(prev => [...prev, data]);
-      
       // Update participant score
       setParticipants(prev => 
         prev.map(p => 
@@ -99,39 +111,42 @@ export default function GameHostPage() {
             : p
         )
       );
+      
+      // Store answer data for results view
+      if (data.answer) {
+        setParticipantAnswers(prev => [
+          ...prev,
+          {
+            participantId: data.participantId,
+            questionId: data.questionId,
+            answerId: data.answerId,
+            timeToAnswer: data.timeToAnswer
+          }
+        ]);
+      }
     });
 
+    // Update to save the server start time when question starts
+    gameChannel.bind(EVENTS.QUESTION_STARTED, (data: any) => {
+      if (data.serverStartTime) {
+        setServerStartTime(data.serverStartTime);
+      }
+    });
+    
     return () => {
       // Clean up Pusher subscriptions
       pusherClient.unsubscribe(CHANNELS.lobby(params.id));
       pusherClient.unsubscribe(CHANNELS.game(params.id));
-      
-      // Clear any active timers
-      if (timerRef.current) clearInterval(timerRef.current);
     };
   }, [params.id]);
 
-  // Start the timer for a question
-  const startTimer = (duration: number) => {
-    // Clear any existing timer
-    if (timerRef.current) clearInterval(timerRef.current);
-    
-    setTimeLeft(duration);
-    setQuestionStartTime(Date.now());
-    
-    timerRef.current = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          // Time's up - show results
-          clearInterval(timerRef.current!);
-          handleQuestionTimeout();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  };
-  
+  // Monitor timeLeft for auto-transitioning to results
+  useEffect(() => {
+    if (gameState === "question" && timeLeft <= 0) {
+      handleQuestionTimeout();
+    }
+  }, [timeLeft, gameState]);
+
   // Handle starting a new question
   const handleStartQuestion = async () => {
     if (!quiz || currentQuestionIndex >= quiz.questions.length - 1) {
@@ -144,7 +159,6 @@ export default function GameHostPage() {
     const newIndex = currentQuestionIndex + 1;
     setCurrentQuestionIndex(newIndex);
     setGameState("question");
-    setParticipantAnswers([]);
     
     // Get question details
     const question = quiz.questions[newIndex];
@@ -159,7 +173,7 @@ export default function GameHostPage() {
         },
         body: JSON.stringify({
           questionIndex: newIndex,
-          timeToAnswer
+          timeToAnswer: timeToAnswer
         })
       });
       
@@ -167,9 +181,6 @@ export default function GameHostPage() {
         console.error("Failed to start question:", await response.text());
         return;
       }
-      
-      // Start local timer
-      startTimer(timeToAnswer);
       
     } catch (error) {
       console.error("Error starting question:", error);
@@ -225,6 +236,13 @@ export default function GameHostPage() {
     router.push("/dashboard");
   };
 
+  // Add an effect to clear participant answers when starting a new question
+  useEffect(() => {
+    if (gameState === "question") {
+      setParticipantAnswers([]);
+    }
+  }, [gameState, currentQuestionIndex]);
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -247,7 +265,6 @@ export default function GameHostPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <DashboardHeader user={user} />
       <main className="flex-1 container py-8">
         <div className="mb-8 flex justify-between items-center">
           <div>
@@ -370,7 +387,7 @@ export default function GameHostPage() {
                     {quiz.questions[currentQuestionIndex].answers.map((answer: any) => {
                       // Count number of participants who chose this answer
                       const answerCount = participantAnswers.filter(
-                        pa => pa.answerId === answer.id
+                        (pa: ParticipantAnswer) => pa.answerId === answer.id
                       ).length;
                       
                       return (

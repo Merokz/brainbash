@@ -17,7 +17,8 @@
         ".next": true,
         "app/login": true,
         "app/register": true,
-        "app/globals.css": true
+        "app/reset-password": true,
+        "app/forgot-password": true
     },
     "hide-files.files": [
         "tsconfig.json",
@@ -32,6 +33,8 @@
         ".next",
         "app/login",
         "app/register",
-        "app/globals.css"
+        "app/reset-password",
+        "app/forgot-password",
+        "node_modules/pusher-js/types/src/core"
     ]
 }

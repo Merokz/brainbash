@@ -45,6 +45,12 @@ export function QuizForm({ quiz }: { quiz?: any }) {
   }, [quiz])
 
   const addQuestion = () => {
+    // Don't allow more than 8 questions
+    if (questions.length >= 8) {
+      setError("Maximum of 8 questions allowed per quiz")
+      return
+    }
+    
     setQuestions([
       ...questions,
       {
@@ -218,12 +224,19 @@ export function QuizForm({ quiz }: { quiz?: any }) {
             </Card>
           )}
 
-          <Button variant="outline" onClick={addQuestion} className="w-full py-8">
-            + Add Another Question
-          </Button>
+          {/* Show add button only if under the limit */}
+          {questions.length < 8 ? (
+            <Button variant="outline" onClick={addQuestion} className="w-full py-8">
+              + Add Another Question ({questions.length}/8)
+            </Button>
+          ) : (
+            <p className="text-center text-amber-600 py-2">
+              Maximum of 8 questions reached
+            </p>
+          )}
 
           {error && <div className="text-sm text-red-500 mt-2">{error}</div>}
-
+          
           <div className="flex justify-between">
             <Button variant="outline" onClick={() => setActiveTab("details")}>
               Back to Details

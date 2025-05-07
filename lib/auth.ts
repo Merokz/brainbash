@@ -44,7 +44,7 @@ export async function verifyToken(token: string): Promise<any> {
 }
 
 export async function getUserFromToken(): Promise<any> {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const token = (await cookieStore).get("auth_token")?.value
 
   if (!token) return null

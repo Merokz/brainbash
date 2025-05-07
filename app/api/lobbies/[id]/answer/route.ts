@@ -3,7 +3,8 @@ import { recordParticipantAnswer } from "@/lib/db";
 import { getParticipantFromToken } from "@/lib/auth";
 import { pusherServer, CHANNELS, EVENTS } from "@/lib/pusher-service";
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     // Get the participant token from the authorization header
     const authHeader = req.headers.get("authorization");

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getLobbyById, getQuizById } from "@/lib/db";
+import { endQuestion, getLobbyById, getQuizById, startQuestion } from "@/lib/db";
 import { getUserFromToken } from "@/lib/auth";
 import { pusherServer, CHANNELS, EVENTS } from "@/lib/pusher-service";
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const user = await getUserFromToken();
     if (!user) {
@@ -46,16 +47,52 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       })),
     };
     
-    // Send the question to participants
+    // Start the question in the database with server timestamp
+    await startQuestion(lobbyId, questionIndex);
+    
+    // Create server timestamp once and use the same value for database and clients
+    const serverTimestamp = new Date();
+    
+    // Notify clients of question start with server timestamp
     await pusherServer.trigger(
       CHANNELS.game(lobbyId.toString()),
       EVENTS.QUESTION_STARTED,
       {
         question: participantQuestion,
-        questionIndex,
-        timeToAnswer: timeToAnswer || 30
+        questionIndex: questionIndex,
+        timeToAnswer: timeToAnswer || 30,
+        serverStartTime: serverTimestamp.toISOString() // Use the same timestamp
       }
     );
+    
+    // Set up a server-side timeout to end the question
+    setTimeout(async () => {
+      try {
+        // Check if the question is still active before ending it
+        const lobby = await getLobbyById(lobbyId);
+        if (lobby && 
+            lobby.state === "IN_GAME" && 
+            lobby.currentQuestionIdx === questionIndex) {
+            
+          await endQuestion(lobbyId);
+          
+          // Send proper metadata with question-ended event
+          const correctAnswers = quiz.questions[questionIndex].answers.filter(a => a.isCorrect);
+          
+          await pusherServer.trigger(
+            CHANNELS.game(lobbyId.toString()),
+            EVENTS.QUESTION_ENDED,
+            { 
+              questionIndex,
+              correctAnswers,
+              isLastQuestion: questionIndex >= quiz.questions.length - 1
+            }
+          );
+        }
+      } catch (endError) {
+        console.error("Error in question timeout handler:", endError);
+      }
+    }, (timeToAnswer || 30) * 1000);
     
     return NextResponse.json({ 
       success: true,

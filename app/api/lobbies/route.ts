@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createLobby } from "@/lib/db";
+import { createLobby, getPublicLobbies } from "@/lib/db";
 import { getUserFromToken } from "@/lib/auth";
 import { pusherServer, CHANNELS, EVENTS } from "@/lib/pusher-service";
 
@@ -44,9 +44,11 @@ export async function POST(req: NextRequest) {
 
 export async function GET() {
   try {
-    // This will be handled by the public-lobbies component
-    // which will use the Pusher client to subscribe to lobby updates
-    return NextResponse.json({ message: "Use Pusher for real-time lobby updates" });
+    const lobbies = await getPublicLobbies();
+    if (!lobbies) {
+      return NextResponse.json({ error: "No public lobbies found" }, { status: 404 });
+    }
+    return NextResponse.json(lobbies);
   } catch (error) {
     console.error("Error getting lobbies:", error);
     return NextResponse.json(
