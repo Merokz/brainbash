@@ -24,8 +24,6 @@
         "public": true,
         "styles": true,
         ".env.example": true,
-        ".gitignore": true,
-        "bun.lock": true,
         "app/globals.css": true
     },
     "hide-files.files": [
@@ -48,8 +46,6 @@
         "public",
         "styles",
         ".env.example",
-        ".gitignore",
-        "bun.lock",
         "app/globals.css"
     ]
 }
