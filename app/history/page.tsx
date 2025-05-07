@@ -46,10 +46,16 @@ export default function History() {
         fetchData();
     }, []);
     
-    if(loading) return <div>Loading...</div>
-    else return(
+    if (loading) {
+        return (
+          <div className="flex min-h-screen items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+        )
+      }
+
+    return(
     <div className="flex min-h-screen flex-col">
-      {user && <DashboardHeader user={user} />}
       <main className="flex-1 container py-8">
         <div className="flex items-center mb-8">
           <h1 className="text-3xl font-bold">History</h1>
@@ -59,18 +65,19 @@ export default function History() {
             <div className="grid gap-8 md:grid-cols-4">
                 {lobbies.map((lobby) => {
                     return (
-                        <Card key={lobby.id}>
+                        <Card key={lobby.lobby.id}>
                             <CardHeader>
-                            <CardTitle>lobby.</CardTitle>
-                            <CardDescription>Manage your created quizzes</CardDescription>
+                            <CardTitle>{lobby.lobby.quiz.title}</CardTitle>
+                            <CardDescription>{lobby.lobby.quiz.description}</CardDescription>
                             </CardHeader>
                             <CardContent>
+                                Points: {lobby.score}
                             </CardContent>
                         </Card>
                     )})
                 }
             </div>
-            : <h2>No history</h2>
+            : <h2>No history (yet ;))</h2>
         }
         
       </main>
