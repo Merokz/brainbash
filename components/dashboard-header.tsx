@@ -19,8 +19,12 @@ interface DashboardHeaderProps {
   }
 }
 
-export function DashboardHeader({ user }: DashboardHeaderProps) {
+export function DashboardHeader({ user }: DashboardHeaderProps ) {
   const router = useRouter()
+
+  const handleHistory = async () => {
+    router.push("/history")
+  }
 
   const handleLogout = async () => {
     try {
@@ -62,6 +66,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
             <DropdownMenuContent align="end">
               <DropdownMenuItem>Profile</DropdownMenuItem>
               <DropdownMenuItem>Settings</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleHistory}>History</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
