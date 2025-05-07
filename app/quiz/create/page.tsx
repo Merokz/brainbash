@@ -2,8 +2,8 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { QuizForm } from "@/components/quiz-form"
 import { DashboardHeader } from "@/components/dashboard-header"
+import { QuizForm } from "@/components/quiz/quiz-form"
 
 export default function CreateQuiz() {
   const [loading, setLoading] = useState(true)

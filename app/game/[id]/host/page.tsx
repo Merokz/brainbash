@@ -3,64 +3,88 @@
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
 import { DashboardHeader } from "@/components/dashboard-header"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ChevronRight, Timer, AlertCircle } from "lucide-react"
 import { getPusherClient, CHANNELS, EVENTS } from "@/lib/pusher-client"
 import { useGameTimer } from "@/hooks/game-timer";
 
-// Define types for participant answers
+import { LobbyDisplayCard } from "@/components/game-host/LobbyDisplayCard";
+import { GameWaitingCard } from "@/components/game-host/GameWaitingCard";
+import { QuestionInProgressCard } from "@/components/game-host/QuestionInProgressCard";
+import { QuestionResultsCard } from "@/components/game-host/QuestionResultsCard";
+import { GameConclusionCard } from "@/components/game-host/GameConclusionCard";
+import { GameSidebar } from "@/components/game-host/GameSidebar";
+import { Timer } from "lucide-react"; // Keep Timer if used directly in this page
+
+// Define types for participant answers (can be moved to a shared types file)
 interface ParticipantAnswer {
   participantId: number;
   questionId: number;
-  answerId: number | null;
+  answerId: number | string | null; // Ensure this matches Answer ID type
   timeToAnswer: number;
 }
 
 export default function GameHostPage() {
   const params = useParams<{ id: string }>();
   const [user, setUser] = useState<any>(null);
+  const [lobbyData, setLobbyData] = useState<any>(null);
   const [quiz, setQuiz] = useState<any>(null);
   const [participants, setParticipants] = useState<any[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(-1);
-  const [gameState, setGameState] = useState<"waiting" | "question" | "results" | "conclusion">("waiting");
+  const [gameState, setGameState] = useState<"lobby" | "waiting" | "question" | "results" | "conclusion">("lobby");
   const [loading, setLoading] = useState(true);
   const [serverStartTime, setServerStartTime] = useState<string | null>(null);
-  // Add state for participant answers
   const [participantAnswers, setParticipantAnswers] = useState<ParticipantAnswer[]>([]);
   const router = useRouter();
 
-  // Replace the timeLeft state with the useGameTimer hook result
-  const timeLeft = useGameTimer(
-    serverStartTime,
-    currentQuestionIndex >= 0 ? (quiz?.questions[currentQuestionIndex].timeToAnswer || 30) : 30
-  );
+  const timePerQuestionForHook = gameState === "question" && quiz?.questions?.[currentQuestionIndex]?.timeToAnswer
+    ? quiz.questions[currentQuestionIndex].timeToAnswer
+    : (lobbyData?.timeToAnswer || 30);
+
+  const timeLeft = useGameTimer(serverStartTime, timePerQuestionForHook);
 
   // Fetch initial data and set up Pusher
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch user data
         const userResponse = await fetch('/api/auth/me');
         if (userResponse.ok) {
           const userData = await userResponse.json();
           setUser(userData);
         }
 
-        // Fetch lobby data with quiz and participants
         const lobbyResponse = await fetch(`/api/lobbies/${params.id}`);
         if (lobbyResponse.ok) {
-          const lobbyData = await lobbyResponse.json();
-          if (lobbyData.quiz) {
-            setQuiz(lobbyData.quiz);
+          const data = await lobbyResponse.json();
+          setLobbyData(data);
+          if (data.quiz) {
+            setQuiz(data.quiz);
           }
-          if (lobbyData.participants) {
-            setParticipants(lobbyData.participants);
+          if (data.participants) {
+            setParticipants(data.participants);
           }
+          if (data.state !== "IN_LOBBY" && data.state !== "CONCLUDED") {
+            setCurrentQuestionIndex(data.currentQuestionIdx ?? -1);
+            if (data.state === "IN_GAME") {
+              if (data.questionStartedAt && data.currentQuestionIdx !== null && data.currentQuestionIdx !== -1) {
+                setGameState("question");
+                setServerStartTime(data.questionStartedAt);
+              } else if (data.currentQuestionIdx !== null && data.currentQuestionIdx !== -1) {
+                 // If questionStartedAt is null, but we have an index, it means results were shown
+                setGameState("results");
+              } else {
+                // Default to waiting if game started but no question active/ended
+                setGameState("waiting");
+              }
+            }
+          } else if (data.state === "CONCLUDED") {
+            setGameState("conclusion");
+          } else {
+            setGameState("lobby"); // Explicitly set to lobby if IN_LOBBY
+          }
+        } else {
+          setLobbyData(null);
+          setQuiz(null);
         }
-
         setLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -70,157 +94,163 @@ export default function GameHostPage() {
 
     fetchData();
 
-    // Set up Pusher subscriptions
     const pusherClient = getPusherClient();
-    
-    // Subscribe to lobby channel for participant updates
-    const lobbyChannel = pusherClient.subscribe(CHANNELS.lobby(params.id));
-    
-    // Subscribe to game channel for game events
-    const gameChannel = pusherClient.subscribe(CHANNELS.game(params.id));
-    
-    // Handle participant joining
+    const lobbyChannelName = CHANNELS.lobby(params.id);
+    const gameChannelName = CHANNELS.game(params.id);
+
+    const lobbyChannel = pusherClient.subscribe(lobbyChannelName);
+    const gameChannel = pusherClient.subscribe(gameChannelName);
+
     lobbyChannel.bind(EVENTS.PARTICIPANT_JOINED, (data: any) => {
       setParticipants(prev => {
         if (prev.some(p => p.id === data.participant.id)) return prev;
         return [...prev, data.participant];
       });
     });
-    
-    // Handle participant leaving
+
     lobbyChannel.bind(EVENTS.PARTICIPANT_LEFT, (data: any) => {
       setParticipants(prev => prev.filter(p => p.id !== data.participantId));
     });
-    
-    // Handle game started
+
+    // GAME_STARTED event transitions from lobby UI to game waiting UI
     lobbyChannel.bind(EVENTS.GAME_STARTED, (data: any) => {
-      // As the host, we should receive the full quiz with answers
       if (data.quiz && data.hostView) {
-        setQuiz(data.quiz);
-        setGameState("waiting");
+        setQuiz(data.quiz); // Update quiz with potentially more details for host
       }
+      setLobbyData((prev: any) => ({ ...prev, state: "IN_GAME" }));
+      setGameState("waiting"); // Ready to start the first question
+      setCurrentQuestionIndex(-1); // Explicitly set for "Start First Question"
     });
     
-    // Handle answers submitted
     gameChannel.bind(EVENTS.ANSWER_SUBMITTED, (data: any) => {
-      // Update participant score
-      setParticipants(prev => 
-        prev.map(p => 
-          p.id === data.participantId 
-            ? { ...p, score: data.newScore } 
+      setParticipants(prev =>
+        prev.map(p =>
+          p.id === data.participantId
+            ? { ...p, score: data.newScore } // Ensure score is updated
             : p
         )
       );
-      
-      // Store answer data for results view
-      if (data.answer) {
+      if (data.answer) { // Ensure data.answer exists
         setParticipantAnswers(prev => [
           ...prev,
           {
             participantId: data.participantId,
             questionId: data.questionId,
-            answerId: data.answerId,
-            timeToAnswer: data.timeToAnswer
+            answerId: data.answer.answerId, // Assuming data.answer contains answerId
+            timeToAnswer: data.answer.timeToAnswer, // Assuming data.answer contains timeToAnswer
           }
         ]);
       }
     });
 
-    // Update to save the server start time when question starts
     gameChannel.bind(EVENTS.QUESTION_STARTED, (data: any) => {
       if (data.serverStartTime) {
         setServerStartTime(data.serverStartTime);
       }
+      // Ensure gameState is 'question' when a question starts
+      setGameState("question");
+      setCurrentQuestionIndex(data.questionIndex);
+      setParticipantAnswers([]); // Clear answers for new question
     });
     
+    // Add HOST_DISCONNECTED for potential cleanup or UI update
+    lobbyChannel.bind(EVENTS.HOST_DISCONNECTED, () => {
+        // Handle host disconnection if necessary, e.g., show a message
+        console.log("Host disconnected event received");
+    });
+
+
     return () => {
-      // Clean up Pusher subscriptions
-      pusherClient.unsubscribe(CHANNELS.lobby(params.id));
-      pusherClient.unsubscribe(CHANNELS.game(params.id));
+      pusherClient.unsubscribe(lobbyChannelName);
+      pusherClient.unsubscribe(gameChannelName);
     };
-  }, [params.id]);
+  }, [params.id]); // Removed router from dependencies as it's stable
 
   // Monitor timeLeft for auto-transitioning to results
   useEffect(() => {
-    if (gameState === "question" && timeLeft <= 0) {
+    if (gameState === "question" && timeLeft <= 0 && serverStartTime) { // only if serverStartTime is set
       handleQuestionTimeout();
     }
-  }, [timeLeft, gameState]);
+  }, [timeLeft, gameState, serverStartTime, currentQuestionIndex]); // Added currentQuestionIndex
 
-  // Handle starting a new question
+  // Function to start the game from the lobby view
+  const handleStartGameFromLobby = async () => {
+    if (!lobbyData) return;
+    try {
+      const response = await fetch(`/api/lobbies/${params.id}/start`, {
+        method: "POST",
+      });
+      if (!response.ok) {
+        console.error("Failed to start game:", await response.text());
+        // Potentially set an error state to show in UI
+      }
+      // Pusher event GAME_STARTED will handle UI transition
+    } catch (error) {
+      console.error("Error starting game:", error);
+    }
+  };
+
   const handleStartQuestion = async () => {
-    if (!quiz || currentQuestionIndex >= quiz.questions.length - 1) {
-      // No more questions, end the game
+    if (!quiz || !lobbyData) return;
+    
+    const isEndingGame = currentQuestionIndex >= quiz.questions.length - 1;
+
+    if (isEndingGame) { // This case should be handled by the button in QuestionResultsCard or GameWaitingCard
       handleEndGame();
       return;
     }
-    
-    // Move to next question
+
     const newIndex = currentQuestionIndex + 1;
-    setCurrentQuestionIndex(newIndex);
-    setGameState("question");
-    
-    // Get question details
+    setServerStartTime(null);
+    setParticipantAnswers([]);
+
     const question = quiz.questions[newIndex];
-    const timeToAnswer = question.timeToAnswer || 30; // Default to 30 seconds
-    
+    // Use timeToAnswer from lobbyData as default, then quiz, then question, then 30
+    const timeToAnswer = question.timeToAnswer || quiz.timeToAnswer || lobbyData.timeToAnswer || 30;
+
+
     try {
-      // Notify server to start the question
       const response = await fetch(`/api/lobbies/${params.id}/question/start`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          questionIndex: newIndex,
-          timeToAnswer: timeToAnswer
-        })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questionIndex: newIndex, timeToAnswer }),
       });
-      
       if (!response.ok) {
         console.error("Failed to start question:", await response.text());
-        return;
       }
-      
+      // Pusher event QUESTION_STARTED will update serverStartTime, gameState, currentIndex
     } catch (error) {
       console.error("Error starting question:", error);
     }
   };
-  
-  // Handle question timeout - show results when timer reaches 0
+
   const handleQuestionTimeout = async () => {
-    if (gameState !== "question") return;
+    // Ensure we are in 'question' state and it's the current question timing out
+    if (gameState !== "question" || !lobbyData || serverStartTime === null) return;
     
     setGameState("results");
-    
+    setServerStartTime(null);
+
     try {
-      // Notify server that the question time is up
       const response = await fetch(`/api/lobbies/${params.id}/question/end`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          questionIndex: currentQuestionIndex,
-        })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questionIndex: currentQuestionIndex }),
       });
-      
       if (!response.ok) {
         console.error("Failed to end question:", await response.text());
       }
-      
     } catch (error) {
       console.error("Error ending question:", error);
     }
   };
-  
-  // Handle ending the game
+
   const handleEndGame = async () => {
+    if (!lobbyData) return;
     try {
       const response = await fetch(`/api/lobbies/${params.id}/end`, {
         method: "POST"
       });
-      
       if (response.ok) {
         setGameState("conclusion");
       } else {
@@ -231,17 +261,28 @@ export default function GameHostPage() {
     }
   };
 
-  // Handle returning to home
   const handleReturnToHome = () => {
     router.push("/");
   };
 
-  // Add an effect to clear participant answers when starting a new question
-  useEffect(() => {
-    if (gameState === "question") {
-      setParticipantAnswers([]);
+  const handleCopyJoinCode = async () => {
+    const text = lobbyData?.joinCode;
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      alert("Join code copied to clipboard!");
+    } catch (err) {
+      console.warn('navigator.clipboard failed', err);
+      alert("Failed to copy code.");
     }
-  }, [gameState, currentQuestionIndex]);
+  };
+  
+  // This useEffect might be redundant if QUESTION_STARTED event clears answers
+  // useEffect(() => {
+  //   if (gameState === "question") {
+  //     setParticipantAnswers([]);
+  //   }
+  // }, [gameState, currentQuestionIndex]);
 
   if (loading) {
     return (
@@ -251,282 +292,117 @@ export default function GameHostPage() {
     );
   }
 
-  if (!quiz) {
+  if (!lobbyData && (gameState === "lobby" || !quiz)) {
+     return (
+      <div className="flex min-h-screen flex-col">
+        <DashboardHeader user={user} />
+        <main className="flex-1 container py-8">
+          <h1 className="text-3xl font-bold mb-4">Lobby or Quiz not found.</h1>
+          <Button onClick={handleReturnToHome}>Return to Home</Button>
+        </main>
+      </div>
+    );
+  }
+  
+  if (!quiz && gameState !== "lobby" && gameState !== "conclusion") { // Allow conclusion if quiz becomes null post-game
     return (
       <div className="flex min-h-screen flex-col">
         <DashboardHeader user={user} />
         <main className="flex-1 container py-8">
-          <h1 className="text-3xl font-bold mb-4">Quiz not found</h1>
+          <h1 className="text-3xl font-bold mb-4">Quiz data is missing for the current game state.</h1>
           <Button onClick={handleReturnToHome}>Return to Home</Button>
         </main>
       </div>
     );
   }
 
+  const currentQuizTitle = quiz?.title || lobbyData?.quiz?.title || "Quiz";
+  // Default time per question from lobby, then quiz, then 30
+  const timePerQuestion = lobbyData?.timeToAnswer || quiz?.timeToAnswer || 30;
+
+
   return (
     <div className="flex min-h-screen flex-col">
       <main className="flex-1 container py-8">
         <div className="mb-8 flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold">{quiz.title}</h1>
-            {currentQuestionIndex >= 0 && (
+            <h1 className="text-3xl font-bold">{currentQuizTitle}</h1>
+            {gameState !== "lobby" && gameState !== "conclusion" && currentQuestionIndex >= 0 && quiz?.questions && (
               <p className="text-muted-foreground">
                 Question {currentQuestionIndex + 1} of {quiz.questions.length}
               </p>
+            )}
+             {gameState === "lobby" && (
+              <p className="text-muted-foreground">Waiting for participants to join...</p>
             )}
           </div>
           {gameState === "question" && (
             <div className="flex items-center space-x-2">
               <Timer className="h-5 w-5" />
-              <span className="font-bold">{timeLeft}s</span>
+              <span className="font-bold">{Math.ceil(timeLeft)}s</span>
             </div>
           )}
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
           <div className="md:col-span-2">
-            {gameState === "waiting" && currentQuestionIndex === -1 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Game Ready to Start</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="mb-6">
-                    You are about to start the quiz "{quiz.title}" with {participants.length} participants.
-                    There are {quiz.questions.length} questions in total.
-                  </p>
-                  <div className="flex justify-end">
-                    <Button onClick={handleStartQuestion}>
-                      Start First Question
-                      <ChevronRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+            {gameState === "lobby" && lobbyData && (
+              <LobbyDisplayCard
+                joinCode={lobbyData.joinCode}
+                participantsCount={participants.length}
+                onCopyJoinCode={handleCopyJoinCode}
+                onStartGame={handleStartGameFromLobby}
+              />
             )}
 
-            {gameState === "waiting" && currentQuestionIndex >= 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Ready for Next Question</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="mb-6">
-                    Question {currentQuestionIndex + 1} completed. Ready to proceed to question {currentQuestionIndex + 2}.
-                  </p>
-                  <div className="flex justify-end">
-                    <Button onClick={handleStartQuestion}>
-                      {currentQuestionIndex < quiz.questions.length - 1 ? (
-                        <>
-                          Start Next Question
-                          <ChevronRight className="ml-2 h-4 w-4" />
-                        </>
-                      ) : (
-                        "End Quiz"
-                      )}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+            {gameState === "waiting" && quiz && (
+              <GameWaitingCard
+                quizTitle={quiz.title}
+                participantsCount={participants.length}
+                questionsCount={quiz.questions.length}
+                currentQuestionIndex={currentQuestionIndex}
+                onStartQuestion={handleStartQuestion}
+                onEndGame={handleEndGame} // Pass handleEndGame for "Show Final Results"
+              />
+            )}
+            
+            {gameState === "question" && currentQuestionIndex >= 0 && quiz?.questions?.[currentQuestionIndex] && (
+              <QuestionInProgressCard
+                question={quiz.questions[currentQuestionIndex]}
+                questionNumber={currentQuestionIndex + 1}
+                timeLeft={timeLeft}
+                timePerQuestion={quiz.questions[currentQuestionIndex].timeToAnswer || timePerQuestion}
+                answeredCount={participantAnswers.length}
+                totalParticipants={participants.length}
+                onEndQuestionEarly={handleQuestionTimeout}
+              />
             )}
 
-            {gameState === "question" && currentQuestionIndex >= 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Question {currentQuestionIndex + 1}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="mb-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <div className="text-sm font-medium">Time remaining</div>
-                      <div className="text-sm font-medium">{timeLeft}s</div>
-                    </div>
-                    <Progress value={(timeLeft / (quiz.questions[currentQuestionIndex].timeToAnswer || 30)) * 100} />
-                  </div>
-
-                  <h2 className="text-xl font-bold mb-6">{quiz.questions[currentQuestionIndex].questionText}</h2>
-
-                  <div className="space-y-4">
-                    {quiz.questions[currentQuestionIndex].answers.map((answer: any) => (
-                      <div 
-                        key={answer.id} 
-                        className={`p-3 border rounded-md flex justify-between items-center ${
-                          answer.isCorrect ? "border-green-300 dark:border-green-700" : ""
-                        }`}
-                      >
-                        <div>{answer.answerText}</div>
-                        {answer.isCorrect && (
-                          <div className="text-sm text-green-600 dark:text-green-400">Correct answer</div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="mt-6 flex items-center justify-between">
-                    <div className="text-sm text-muted-foreground">
-                      <AlertCircle className="h-4 w-4 inline mr-1" />
-                      Waiting for participants to answer...
-                    </div>
-                    <Button variant="outline" onClick={handleQuestionTimeout}>
-                      End Question Early
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {gameState === "results" && currentQuestionIndex >= 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Question Results</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <h2 className="text-xl font-bold mb-6">{quiz.questions[currentQuestionIndex].questionText}</h2>
-
-                  <div className="space-y-4 mb-6">
-                    {quiz.questions[currentQuestionIndex].answers.map((answer: any) => {
-                      // Count number of participants who chose this answer
-                      const answerCount = participantAnswers.filter(
-                        (pa: ParticipantAnswer) => pa.answerId === answer.id
-                      ).length;
-                      
-                      return (
-                        <div
-                          key={answer.id}
-                          className={`p-3 border rounded-md flex justify-between items-center ${
-                            answer.isCorrect
-                              ? "bg-green-100 border-green-300 dark:bg-green-900/20 dark:border-green-700"
-                              : ""
-                          }`}
-                        >
-                          <div>{answer.answerText}</div>
-                          <div className="text-sm">
-                            {answerCount} {answerCount === 1 ? "participant" : "participants"}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div className="flex justify-end">
-                    <Button onClick={handleStartQuestion}>
-                      {currentQuestionIndex < quiz.questions.length - 1 ? (
-                        <>
-                          Next Question
-                          <ChevronRight className="ml-2 h-4 w-4" />
-                        </>
-                      ) : (
-                        "End Quiz"
-                      )}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+            {gameState === "results" && currentQuestionIndex >= 0 && quiz?.questions?.[currentQuestionIndex] && (
+              <QuestionResultsCard
+                question={quiz.questions[currentQuestionIndex]}
+                questionNumber={currentQuestionIndex + 1}
+                participantAnswers={participantAnswers}
+                isLastQuestion={currentQuestionIndex >= quiz.questions.length - 1}
+                onNextAction={currentQuestionIndex >= quiz.questions.length - 1 ? handleEndGame : handleStartQuestion}
+              />
             )}
 
             {gameState === "conclusion" && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Quiz Conclusion</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <h2 className="text-xl font-bold mb-6">Final Results</h2>
-
-                  <div className="space-y-2 mb-8">
-                    {participants
-                      .sort((a, b) => b.score - a.score)
-                      .map((participant, index) => (
-                        <div
-                          key={participant.id}
-                          className={`p-3 border rounded-md flex justify-between items-center ${
-                            index === 0
-                              ? "bg-yellow-100 border-yellow-300 dark:bg-yellow-900/20 dark:border-yellow-700"
-                              : ""
-                          }`}
-                        >
-                          <div className="font-medium">
-                            {index + 1}. {participant.username}
-                            {index === 0 && " 🏆"}
-                          </div>
-                          <div>{participant.score} points</div>
-                        </div>
-                      ))}
-                  </div>
-
-                  <div className="flex justify-end">
-                    <Button onClick={handleReturnToHome}>Return to Home</Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <GameConclusionCard
+                quizTitle={currentQuizTitle}
+                participants={participants}
+                onReturnToHome={handleReturnToHome}
+              />
             )}
           </div>
 
           <div>
-            <Tabs defaultValue="leaderboard">
-              <TabsList className="w-full">
-                <TabsTrigger value="leaderboard" className="flex-1">
-                  Leaderboard
-                </TabsTrigger>
-                <TabsTrigger value="participants" className="flex-1">
-                  Participants
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="leaderboard">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Leaderboard</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {participants.length > 0 ? (
-                      <div className="space-y-2">
-                        {participants
-                          .sort((a, b) => b.score - a.score)
-                          .map((participant, index) => (
-                            <div key={participant.id} className="p-3 border rounded-md flex justify-between items-center">
-                              <div>
-                                {index + 1}. {participant.username}
-                              </div>
-                              <div>{participant.score}</div>
-                            </div>
-                          ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-4 text-muted-foreground">
-                        No participants yet
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="participants">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Participants ({participants.length})</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {participants.length > 0 ? (
-                      <div className="space-y-2">
-                        {participants.map((participant) => (
-                          <div key={participant.id} className="p-3 border rounded-md flex justify-between items-center">
-                            <div>{participant.username}</div>
-                            <div className="text-sm text-muted-foreground">{participant.score} points</div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-4 text-muted-foreground">
-                        No participants have joined yet
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
+            <GameSidebar participants={participants} gameState={gameState} />
           </div>
         </div>
       </main>
     </div>
   );
 }
+
