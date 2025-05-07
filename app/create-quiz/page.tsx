@@ -6,14 +6,11 @@ import { QuizForm } from "@/components/quiz-form"
 import { DashboardHeader } from "@/components/dashboard-header"
 
 export default function CreateQuiz() {
-  const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const router = useRouter()
 
   // In a real app, we would fetch the user data here
   // For now, we'll just simulate it
   useState(() => {
-    setUser({ username: "User" })
     setLoading(false)
   })
 
