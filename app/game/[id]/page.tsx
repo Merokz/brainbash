@@ -1,7 +1,7 @@
 "use client"
 
 import { useParams } from 'next/navigation'
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { getPusherClient, CHANNELS, EVENTS } from "@/lib/pusher-client"
+import { useGameTimer } from "@/hooks/game-timer"
 
 export default function GamePage() {
   const params = useParams<{ id: string }>();
@@ -19,15 +20,17 @@ export default function GamePage() {
   const [quiz, setQuiz] = useState<any>(null);
   const [currentQuestion, setCurrentQuestion] = useState<any>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
-  const [timeLeft, setTimeLeft] = useState(0);
   const [initialTimeToAnswer, setInitialTimeToAnswer] = useState(30);
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>([]);
   const [openAnswer, setOpenAnswer] = useState("");
   const [results, setResults] = useState<any>(null);
   const [conclusion, setConclusion] = useState<any>(null);
   const [submittedAnswer, setSubmittedAnswer] = useState<boolean>(false);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const [serverStartTime, setServerStartTime] = useState<string | null>(null);
   const router = useRouter();
+
+  // Replace timeLeft state with the hook result
+  const timeLeft = useGameTimer(serverStartTime, initialTimeToAnswer);
 
   useEffect(() => {
     // Get participant token from localStorage
@@ -56,43 +59,22 @@ export default function GamePage() {
     
     // Listen for new questions
     gameChannel.bind(EVENTS.QUESTION_STARTED, (data: any) => {
-      // Clear any previous timers
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-      
       setCurrentQuestion(data.question);
       setCurrentQuestionIndex(data.questionIndex);
       setInitialTimeToAnswer(data.timeToAnswer || 30);
-      setTimeLeft(data.timeToAnswer || 30);
       setSelectedAnswers([]);
       setOpenAnswer("");
       setSubmittedAnswer(false);
       setGameState("question");
       
-      // Start countdown timer
-      timerRef.current = setInterval(() => {
-        setTimeLeft(prev => {
-          if (prev <= 1) {
-            clearInterval(timerRef.current!);
-            if (!submittedAnswer) {
-              // Auto-submit timeout if no answer was given
-              handleTimedOut();
-            }
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+      // Save server start time for synchronized countdown
+      if (data.serverStartTime) {
+        setServerStartTime(data.serverStartTime);
+      }
     });
     
     // Listen for question ending
     gameChannel.bind(EVENTS.QUESTION_ENDED, (data: any) => {
-      // Clear the timer if it's still running
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-      
       setGameState("results");
       setResults({
         correctAnswers: data.correctAnswers,
@@ -123,11 +105,15 @@ export default function GamePage() {
     // Clean up on unmount
     return () => {
       pusherClient.unsubscribe(CHANNELS.game(params.id));
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
     };
   }, [params.id, router]);
+
+  // Monitor timeLeft to auto-submit when time runs out
+  useEffect(() => {
+    if (gameState === "question" && timeLeft <= 0 && !submittedAnswer) {
+      handleTimedOut();
+    }
+  }, [timeLeft, gameState, submittedAnswer]);
 
   // Handle answer selection
   const handleAnswerSelect = (answerId: number) => {

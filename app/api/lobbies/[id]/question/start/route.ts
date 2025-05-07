@@ -49,6 +49,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     // Start the question in the database with server timestamp
     await startQuestion(lobbyId, questionIndex);
     
+    // Create server timestamp once and use the same value for database and clients
+    const serverTimestamp = new Date();
+    
     // Notify clients of question start with server timestamp
     await pusherServer.trigger(
       CHANNELS.game(lobbyId.toString()),
@@ -57,24 +60,36 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         question: participantQuestion,
         questionIndex: questionIndex,
         timeToAnswer: timeToAnswer || 30,
-        serverStartTime: new Date().toISOString() // Include server timestamp
+        serverStartTime: serverTimestamp.toISOString() // Use the same timestamp
       }
     );
     
     // Set up a server-side timeout to end the question
     setTimeout(async () => {
-      // Check if the question is still active before ending it
-      const lobby = await getLobbyById(lobbyId);
-      if (lobby && 
-          lobby.state === "IN_GAME" && 
-          lobby.currentQuestionIdx === questionIndex) {
-        await endQuestion(lobbyId);
-        // Trigger question ended event
-        await pusherServer.trigger(
-          CHANNELS.game(lobbyId.toString()),
-          EVENTS.QUESTION_ENDED,
-          { /* question end data */ }
-        );
+      try {
+        // Check if the question is still active before ending it
+        const lobby = await getLobbyById(lobbyId);
+        if (lobby && 
+            lobby.state === "IN_GAME" && 
+            lobby.currentQuestionIdx === questionIndex) {
+            
+          await endQuestion(lobbyId);
+          
+          // Send proper metadata with question-ended event
+          const correctAnswers = quiz.questions[questionIndex].answers.filter(a => a.isCorrect);
+          
+          await pusherServer.trigger(
+            CHANNELS.game(lobbyId.toString()),
+            EVENTS.QUESTION_ENDED,
+            { 
+              questionIndex,
+              correctAnswers,
+              isLastQuestion: questionIndex >= quiz.questions.length - 1
+            }
+          );
+        }
+      } catch (endError) {
+        console.error("Error in question timeout handler:", endError);
       }
     }, (timeToAnswer || 30) * 1000);
     
