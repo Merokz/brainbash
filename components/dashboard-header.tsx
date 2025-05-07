@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import logoBanner from "@/public/logo-banner.png";
+import logoBanner from "@/public/logo.png";
 import Image from "next/image";
 
 interface DashboardHeaderProps {
