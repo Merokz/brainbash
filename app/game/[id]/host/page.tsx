@@ -230,10 +230,10 @@ export default function GameHostPage() {
       console.error("Error ending game:", error);
     }
   };
-  
-  // Handle returning to dashboard
-  const handleReturnToDashboard = () => {
-    router.push("/dashboard");
+
+  // Handle returning to home
+  const handleReturnToHome = () => {
+    router.push("/");
   };
 
   // Add an effect to clear participant answers when starting a new question
@@ -257,7 +257,7 @@ export default function GameHostPage() {
         <DashboardHeader user={user} />
         <main className="flex-1 container py-8">
           <h1 className="text-3xl font-bold mb-4">Quiz not found</h1>
-          <Button onClick={handleReturnToDashboard}>Return to Dashboard</Button>
+          <Button onClick={handleReturnToHome}>Return to Home</Button>
         </main>
       </div>
     );
@@ -454,7 +454,7 @@ export default function GameHostPage() {
                   </div>
 
                   <div className="flex justify-end">
-                    <Button onClick={handleReturnToDashboard}>Return to Dashboard</Button>
+                    <Button onClick={handleReturnToHome}>Return to Home</Button>
                   </div>
                 </CardContent>
               </Card>
