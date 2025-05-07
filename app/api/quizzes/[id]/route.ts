@@ -17,7 +17,8 @@ import { getUserFromToken } from "@/lib/auth"
 import { saveBase64Image } from "@/lib/save-image"
 
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const quizId = Number.parseInt(params.id)
 
@@ -47,7 +48,8 @@ export async function GET(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const quizId = Number.parseInt(params.id);
     if (isNaN(quizId)) {
@@ -94,7 +96,8 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const quizId = Number.parseInt(params.id)
 

@@ -1,11 +1,12 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, use } from "react";
 import { QuizForm } from "@/components/quiz-form"
 import { DashboardHeader } from "@/components/dashboard-header"
 import { Quiz } from "@prisma/client"
 
-export default function EditQuiz({ params }: { params: { id: string} }) {
+export default function EditQuiz(props: { params: Promise<{ id: string}> }) {
+  const params = use(props.params);
   const [quiz, setQuiz] = useState<Quiz>();
   const [loading, setLoading] = useState(true)
 
