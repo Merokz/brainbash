@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getLobbyById, getQuestionById,recordParticipantAnswer } from "@/lib/db";
 import { getParticipantFromToken } from "@/lib/auth";
 import { pusherServer, CHANNELS, EVENTS } from "@/lib/pusher-service";
 import { calculatePoints } from "@/lib/game";
+import { getLobbyById, getQuestionById, recordParticipantAnswer } from "@/lib/commands";
 
 
 export async function POST(
