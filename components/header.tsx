@@ -26,6 +26,10 @@ export function Header({ user }: HeaderProps ) {
     router.push("/history")
   }
 
+  const handleProfile = async () => {
+    router.push("/profile")
+  }
+
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", {
@@ -61,7 +65,7 @@ export function Header({ user }: HeaderProps ) {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem>profile</DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleProfile}>profile</DropdownMenuItem>
                   <DropdownMenuItem>settings</DropdownMenuItem>
                   <DropdownMenuItem onClick={handleHistory}>history</DropdownMenuItem>
                   <DropdownMenuSeparator />

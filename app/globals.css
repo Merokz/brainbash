@@ -75,6 +75,6 @@
   }
 
   .animate-gradient-x {
-    animation: gradient-x 4s ease infinite;
+    animation: gradient-x 2s ease infinite;
   }
 }
