@@ -34,7 +34,7 @@ export function HomeHero({ user }: HomeHeroProps) {
                 </Link>
               )}
               <Link href="#join-game">
-                <Button variant="outline" size="lg">
+                <Button variant="outline" size="lg" className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/50">
                   join a game
                 </Button>
               </Link>
