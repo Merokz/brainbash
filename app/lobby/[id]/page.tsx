@@ -165,7 +165,7 @@ export default function LobbyPage() {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Users className="mr-2 h-5 w-5" />
-                participants: ({participants.length})
+                participants ({participants.length})
               </CardTitle>
               <CardDescription>players who have joined the lobby</CardDescription>
             </CardHeader>
