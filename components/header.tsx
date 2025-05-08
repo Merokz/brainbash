@@ -31,8 +31,10 @@ export function Header({ user }: HeaderProps ) {
       await fetch("/api/auth/logout", {
         method: "POST",
       })
-      router.push("/")
-      window.location.reload() // this is easier than updating everthing in the UI.
+      //redirect to home with hard reload
+      window.requestAnimationFrame(() => {
+        window.location.href = "/"
+      });
     } catch (error) {
       console.error("Logout error:", error)
     }
