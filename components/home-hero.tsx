@@ -1,17 +1,18 @@
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { JSX } from 'react';
 
 interface HomeHeroProps {
     user: any;
 }
 
-export function HomeHero({ user }: HomeHeroProps) {
+export const HomeHero = ({ user }: HomeHeroProps): JSX.Element => {
     return (
         <section
             className="w-full py-12 md:py-24 lg:py-32 bg-cover bg-center bg-no-repeat"
             style={{ backgroundImage: "url('/hero_transparent.png')" }}
         >
-            <div className="h-14"></div>
+            <div className="h-14" />
             <div className="w-full h-full">
                 <div className="container px-4 md:px-6">
                     <div className="flex flex-col items-center space-y-4 text-center">
@@ -49,4 +50,4 @@ export function HomeHero({ user }: HomeHeroProps) {
             </div>
         </section>
     );
-}
+};

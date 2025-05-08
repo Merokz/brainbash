@@ -12,6 +12,7 @@ import logoBanner from '@/public/logo.png';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { JSX } from 'react';
 
 interface HeaderProps {
     user: {
@@ -19,14 +20,14 @@ interface HeaderProps {
     } | null;
 }
 
-export const Header = ({ user }: HeaderProps) => {
+export const Header = ({ user }: HeaderProps): JSX.Element => {
     const router = useRouter();
 
-    const handleHistory = async () => {
+    const handleHistory = async (): Promise<any> => {
         router.push('/history');
     };
 
-    const handleLogout = async () => {
+    const handleLogout = async (): Promise<any> => {
         try {
             await fetch('/api/auth/logout', {
                 method: 'POST',
