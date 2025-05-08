@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 
 export default function History() {
-  const [_user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<any>(null);
   const [lobbies, setLobbies] = useState<any[]>([null]);
   const [loading, setLoading] = useState(true);
 

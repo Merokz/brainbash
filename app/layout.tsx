@@ -8,8 +8,6 @@ import { getUserFromToken } from "@/lib/auth";
 
 const inter = Inter({ subsets: ["latin"] })
 
-
-
 export const metadata: Metadata = {
   title: "BrainBash - Real-Time Quiz App",
   description: "Create and participate in interactive quiz games in real-time",

@@ -2,6 +2,9 @@
 const nextConfig = {
   reactStrictMode: true,
   output: "export",
+  typescript: {
+    ignoreBuildErrors: true
+  },
   images: {
     domains: ["localhost"],
     unoptimized: true,

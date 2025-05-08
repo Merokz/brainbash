@@ -17,7 +17,7 @@ import { Timer } from "lucide-react";
 
 export default function GameHostPage() {
   const params = useParams<{ id: string }>();
-  const [_user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<any>(null);
   const [lobbyData, setLobbyData] = useState<any>(null);
   const [quiz, setQuiz] = useState<any>(null);
   // Ensure participants state matches the structure expected by child components
