@@ -1,5 +1,6 @@
 import { cacheClient } from "@/lib/cache";
 import { Prisma } from "@prisma/client";
+import { USER_CACHE_TTL } from "../prisma";
 
 type QuizWithQuestionCount = Prisma.QuizGetPayload<{
   include: {
