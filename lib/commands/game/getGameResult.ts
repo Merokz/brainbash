@@ -1,16 +1,16 @@
 export async function getGameResults(lobbyId: number) {
-  const participants = await prisma.participant.findMany({
-    where: { lobbyId, valid: true },
-    include: {
-      participantAnswers: {
+    const participants = await prisma.participant.findMany({
+        where: { lobbyId, valid: true },
         include: {
-          question: true,
-          answer: true,
+            participantAnswers: {
+                include: {
+                    question: true,
+                    answer: true,
+                },
+            },
         },
-      },
-    },
-    orderBy: { score: "desc" },
-  });
+        orderBy: { score: 'desc' },
+    });
 
-  return participants;
+    return participants;
 }

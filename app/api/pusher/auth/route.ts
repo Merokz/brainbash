@@ -1,119 +1,137 @@
-import { NextRequest, NextResponse } from "next/server";
-import { pusherServer } from "@/lib/pusher-service";
-import { getUserFromToken } from "@/lib/auth";
-import { getParticipantFromToken } from "@/lib/auth";
+import { NextRequest, NextResponse } from 'next/server';
+import { pusherServer } from '@/lib/pusher-service';
+import { getUserFromToken } from '@/lib/auth';
+import { getParticipantFromToken } from '@/lib/auth';
 
 // Define allowed methods for this route
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-export async function POST(req: NextRequest) {
-  console.log("Pusher auth endpoint called");
-  
-  try {
-    // Get the content type to determine how to parse the data
-    const contentType = req.headers.get('content-type') || '';
-    let socket_id = '';
-    let channel_name = '';
-    
-    // Parse data based on content type
-    if (contentType.includes('application/x-www-form-urlencoded') || 
-        contentType.includes('multipart/form-data')) {
-      // Parse as form data
-      const formData = await req.formData();
-      socket_id = formData.get('socket_id')?.toString() || '';
-      channel_name = formData.get('channel_name')?.toString() || '';
-    } else if (contentType.includes('application/json')) {
-      // Parse as JSON
-      const jsonData = await req.json();
-      socket_id = jsonData.socket_id || '';
-      channel_name = jsonData.channel_name || '';
-    } else {
-      // Try to get from URL params as fallback
-      const url = new URL(req.url);
-      socket_id = url.searchParams.get('socket_id') || '';
-      channel_name = url.searchParams.get('channel_name') || '';
-    }
-    
-    console.log("Socket ID:", socket_id);
-    console.log("Channel name:", channel_name);
-    
-    if (!socket_id || !channel_name) {
-      console.error("Missing socket_id or channel_name");
-      return NextResponse.json(
-        { error: "Missing socket_id or channel_name" }, 
-        { status: 400 }
-      );
-    }
+export const POST = async (req: NextRequest): Promise<any> => {
+    console.log('Pusher auth endpoint called');
 
-    // For presence channels, we need to authenticate with user data
-    if (channel_name.startsWith('presence-')) {
-      // Extract the lobby ID from the channel name
-      const lobbyId = channel_name.split('presence-lobby-')[1];
-      if (!lobbyId) {
-        return NextResponse.json({ error: "Invalid channel name" }, { status: 400 });
-      }
+    try {
+        // Get the content type to determine how to parse the data
+        const contentType = req.headers.get('content-type') || '';
+        let socket_id = '';
+        let channel_name = '';
 
-      // Check if this is a user or a participant
-      const user = await getUserFromToken();
-      
-      // If we have a user token, authenticate as the user
-      if (user) {
-        console.log("Authenticating user:", user.id);
-        const userData = {
-          user_id: `user-${user.id}`,
-          user_info: {
-            name: user.username,
-            isHost: true,
-          }
-        };
-        
-        const authResponse = pusherServer.authorizeChannel(socket_id, channel_name, userData);
-        return NextResponse.json(authResponse);
-      }
-      
-      // If there's no user token, look for a participant token
-      const authHeader = req.headers.get("authorization");
-      if (authHeader && authHeader.startsWith("Bearer ")) {
-        const token = authHeader.substring(7);
-        const participant = await getParticipantFromToken(token);
-        
-        if (participant && participant.lobbyId === Number(lobbyId)) {
-          console.log("Authenticating participant:", participant.id);
-          const userData = {
-            user_id: `participant-${participant.id}`,
-            user_info: {
-              name: participant.username,
-              isHost: false,
-            }
-          };
-          
-          const authResponse = pusherServer.authorizeChannel(socket_id, channel_name, userData);
-          return NextResponse.json(authResponse);
+        // Parse data based on content type
+        if (
+            contentType.includes('application/x-www-form-urlencoded') ||
+            contentType.includes('multipart/form-data')
+        ) {
+            // Parse as form data
+            const formData = await req.formData();
+            socket_id = formData.get('socket_id')?.toString() || '';
+            channel_name = formData.get('channel_name')?.toString() || '';
+        } else if (contentType.includes('application/json')) {
+            // Parse as JSON
+            const jsonData = await req.json();
+            socket_id = jsonData.socket_id || '';
+            channel_name = jsonData.channel_name || '';
+        } else {
+            // Try to get from URL params as fallback
+            const url = new URL(req.url);
+            socket_id = url.searchParams.get('socket_id') || '';
+            channel_name = url.searchParams.get('channel_name') || '';
         }
-      }
-      
-      // Neither a valid user nor participant token was provided
-      console.log("Authentication failed: unauthorized");
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+        console.log('Socket ID:', socket_id);
+        console.log('Channel name:', channel_name);
+
+        if (!socket_id || !channel_name) {
+            console.error('Missing socket_id or channel_name');
+            return NextResponse.json(
+                { error: 'Missing socket_id or channel_name' },
+                { status: 400 },
+            );
+        }
+
+        // For presence channels, we need to authenticate with user data
+        if (channel_name.startsWith('presence-')) {
+            // Extract the lobby ID from the channel name
+            const lobbyId = channel_name.split('presence-lobby-')[1];
+            if (!lobbyId) {
+                return NextResponse.json(
+                    { error: 'Invalid channel name' },
+                    { status: 400 },
+                );
+            }
+
+            // Check if this is a user or a participant
+            const user = await getUserFromToken();
+
+            // If we have a user token, authenticate as the user
+            if (user) {
+                console.log('Authenticating user:', user.id);
+                const userData = {
+                    user_id: `user-${user.id}`,
+                    user_info: {
+                        name: user.username,
+                        isHost: true,
+                    },
+                };
+
+                const authResponse = pusherServer.authorizeChannel(
+                    socket_id,
+                    channel_name,
+                    userData,
+                );
+                return NextResponse.json(authResponse);
+            }
+
+            // If there's no user token, look for a participant token
+            const authHeader = req.headers.get('authorization');
+            if (authHeader && authHeader.startsWith('Bearer ')) {
+                const token = authHeader.substring(7);
+                const participant = await getParticipantFromToken(token);
+
+                if (participant && participant.lobbyId === Number(lobbyId)) {
+                    console.log('Authenticating participant:', participant.id);
+                    const userData = {
+                        user_id: `participant-${participant.id}`,
+                        user_info: {
+                            name: participant.username,
+                            isHost: false,
+                        },
+                    };
+
+                    const authResponse = pusherServer.authorizeChannel(
+                        socket_id,
+                        channel_name,
+                        userData,
+                    );
+                    return NextResponse.json(authResponse);
+                }
+            }
+
+            // Neither a valid user nor participant token was provided
+            console.log('Authentication failed: unauthorized');
+            return NextResponse.json(
+                { error: 'Unauthorized' },
+                { status: 401 },
+            );
+        }
+
+        // For private channels, we just need to authenticate
+        if (channel_name.startsWith('private-')) {
+            console.log('Authenticating private channel');
+            const authResponse = pusherServer.authorizeChannel(
+                socket_id,
+                channel_name,
+            );
+            return NextResponse.json(authResponse);
+        }
+
+        // Public channels don't need authentication
+        console.log('Public channel, no authentication required');
+        return NextResponse.json({}, { status: 200 });
+    } catch (error) {
+        console.error('Error authenticating Pusher channel:', error);
+        return NextResponse.json(
+            { error: 'Failed to authenticate' },
+            { status: 500 },
+        );
     }
-    
-    // For private channels, we just need to authenticate
-    if (channel_name.startsWith('private-')) {
-      console.log("Authenticating private channel");
-      const authResponse = pusherServer.authorizeChannel(socket_id, channel_name);
-      return NextResponse.json(authResponse);
-    }
-    
-    // Public channels don't need authentication
-    console.log("Public channel, no authentication required");
-    return NextResponse.json({}, { status: 200 });
-    
-  } catch (error) {
-    console.error("Error authenticating Pusher channel:", error);
-    return NextResponse.json(
-      { error: "Failed to authenticate" },
-      { status: 500 }
-    );
-  }
-}
+};

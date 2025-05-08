@@ -1,16 +1,16 @@
 export async function createQuestion(
-  quizId: number,
-  data: {
-    questionText: string;
-    image?: string;
-    orderNum: number;
-    questionType: string;
-  }
-) {
-  return prisma.question.create({
+    quizId: number,
     data: {
-      quizId,
-      ...data,
+        questionText: string;
+        image?: string;
+        orderNum: number;
+        questionType: string;
     },
-  });
+) {
+    return prisma.question.create({
+        data: {
+            quizId,
+            ...data,
+        },
+    });
 }
