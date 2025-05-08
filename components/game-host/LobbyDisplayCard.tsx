@@ -28,6 +28,12 @@ export function LobbyDisplayCard({
           <CardDescription>participants use this code to join the lobby.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-4">
+
+          {joinLink && (
+            <div className="p-2 bg-white rounded-lg shadow">
+              <QRCodeSVG value={joinLink} size={180} />
+            </div>
+          )}
           <div className="text-5xl font-bold tracking-wider p-4 border-2 border-dashed border-primary rounded-lg">
             {joinCode}
           </div>
@@ -35,11 +41,6 @@ export function LobbyDisplayCard({
             <Copy className="mr-2 h-4 w-4" />
             copy code
           </Button>
-          {joinLink && (
-            <div className="p-2 bg-white rounded-lg shadow">
-              <QRCodeSVG value={joinLink} size={180} />
-            </div>
-          )}
           {joinLink && (
             <p className="text-sm text-muted-foreground text-center">
               or share this link: <a href={joinLink} target="_blank" rel="noopener noreferrer" className="underline">{joinLink}</a>
