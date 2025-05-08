@@ -48,24 +48,39 @@ export async function getUserFromToken(): Promise<any> {
   const token = (await cookieStore).get("auth_token")?.value
 
   if (!token) return null
+  try {
+    const payload = await verifyToken(token)
+    if (!payload || !payload.userId) return null
 
-  const payload = await verifyToken(token)
-  if (!payload || !payload.userId) return null
+    const user = await findUserById(payload.userId)
+    if (!user) return null
+    console.log("getUserFromToken - User:", user);
 
-  const user = await findUserById(payload.userId)
-  if (!user) return null
+    return user
+  }
+  catch (error) {
+    console.error("Error verifying token:", error)
+    return null
+  }
 
-  return user
 }
 
 export async function getParticipantFromToken(token: string): Promise<any> {
-  const payload = await verifyToken(token)
-  if (!payload || !payload.participantId || !payload.lobbyId) return null
+  try {
 
-  const participant = await getParticipantByIdAndLobbyId(
-    payload.participantId,
-    payload.lobbyId,
-  )
+    const payload = await verifyToken(token)
+    if (!payload || !payload.participantId || !payload.lobbyId) return null
 
-  return participant
+    const participant = await getParticipantByIdAndLobbyId(
+      payload.participantId,
+      payload.lobbyId,
+    )
+    console.log("getParticipantFromToken - Participant:", participant);
+
+    return participant
+  }
+  catch (error) {
+    console.error("Error verifying token:", error)
+    return null
+  }
 }

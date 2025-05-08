@@ -60,7 +60,7 @@ export default function GameHostPage() {
           if (data.participants) {
             setParticipants(data.participants.map((p: any) => ({ ...p, id: p.id, username: p.username, score: p.score || 0, isHost: p.userId === data.hostId })));
           }
-          
+
           if (data.state !== "IN_LOBBY" && data.state !== "CONCLUDED") {
             setCurrentQuestionIndex(data.currentQuestionIdx ?? -1);
             if (data.state === "IN_GAME") {
@@ -93,7 +93,7 @@ export default function GameHostPage() {
 
     const pusherClient = getPusherClient();
     // CHANNELS.lobby(params.id) should return 'presence-lobby-...'
-    const lobbyChannelName = CHANNELS.lobby(params.id); 
+    const lobbyChannelName = CHANNELS.lobby(params.id);
     const gameChannelName = CHANNELS.game(params.id);
 
     const lobbyChannel = pusherClient.subscribe(lobbyChannelName);
@@ -114,6 +114,8 @@ export default function GameHostPage() {
     });
 
     lobbyChannel.bind('pusher:member_added', (member: { id: string; info: { name: string; isHost: boolean } }) => {
+      console.log("Member added:", member);
+
       setParticipants(prev => {
         if (prev.some(p => p.id === member.id)) return prev; // Already present
         return [...prev, {
@@ -126,6 +128,7 @@ export default function GameHostPage() {
     });
 
     lobbyChannel.bind('pusher:member_removed', (member: { id: string; info: { name: string; isHost: boolean } }) => {
+      console.log("Member removed:", member);
       setParticipants(prev => prev.filter(p => p.id !== member.id));
     });
     // --- End of Pusher Presence Event Handling ---
@@ -139,7 +142,7 @@ export default function GameHostPage() {
       setGameState("waiting"); // Ready to start the first question
       setCurrentQuestionIndex(-1); // Explicitly set for "Start First Question"
     });
-    
+
     gameChannel.bind(EVENTS.ANSWER_SUBMITTED, (data: any) => {
       setParticipants(prev =>
         prev.map(p => {
@@ -147,7 +150,7 @@ export default function GameHostPage() {
           // data.participantId from your backend might be the numeric ID or the string ID.
           // Ensure your EVENTS.ANSWER_SUBMITTED payload includes a consistent ID.
           // Assuming data.participantId is the string ID like "participant-123" or "user-1"
-          if (p.id === data.participantId) { 
+          if (p.id === data.participantId) {
             return { ...p, score: data.newScore }; // Ensure score is updated
           }
           return p;
@@ -175,11 +178,11 @@ export default function GameHostPage() {
       setCurrentQuestionIndex(data.questionIndex);
       setParticipantAnswers([]); // Clear answers for new question
     });
-    
+
     // Add HOST_DISCONNECTED for potential cleanup or UI update
     lobbyChannel.bind(EVENTS.HOST_DISCONNECTED, () => {
-        // Handle host disconnection if necessary, e.g., show a message
-        console.log("Host disconnected event received");
+      // Handle host disconnection if necessary, e.g., show a message
+      console.log("Host disconnected event received");
     });
 
 
@@ -215,7 +218,7 @@ export default function GameHostPage() {
 
   const handleStartQuestion = async () => {
     if (!quiz || !lobbyData) return;
-    
+
     const isEndingGame = currentQuestionIndex >= quiz.questions.length - 1;
 
     if (isEndingGame) { // This case should be handled by the button in QuestionResultsCard or GameWaitingCard
@@ -250,7 +253,7 @@ export default function GameHostPage() {
   const handleQuestionTimeout = async () => {
     // Ensure we are in 'question' state and it's the current question timing out
     if (gameState !== "question" || !lobbyData || serverStartTime === null) return;
-    
+
     setGameState("results");
     setServerStartTime(null);
 
@@ -299,7 +302,7 @@ export default function GameHostPage() {
       alert("Failed to copy code.");
     }
   };
-  
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -309,7 +312,7 @@ export default function GameHostPage() {
   }
 
   if (!lobbyData && (gameState === "lobby" || !quiz)) {
-     return (
+    return (
       <div className="flex min-h-screen flex-col">
         <main className="flex-1 container py-8">
           <h1 className="text-3xl font-bold mb-4">lobby or quiz not found.</h1>
@@ -318,7 +321,7 @@ export default function GameHostPage() {
       </div>
     );
   }
-  
+
   if (!quiz && gameState !== "lobby" && gameState !== "conclusion") { // Allow conclusion if quiz becomes null post-game
     return (
       <div className="flex min-h-screen flex-col">
@@ -337,7 +340,6 @@ export default function GameHostPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <DashboardHeader user={user} />
       <main className="flex-1 container py-8">
         <div className="mb-8 flex justify-between items-center">
           <div>
@@ -347,7 +349,7 @@ export default function GameHostPage() {
                 question {currentQuestionIndex + 1} of {quiz.questions.length}
               </p>
             )}
-             {gameState === "lobby" && (
+            {gameState === "lobby" && (
               <p className="text-muted-foreground">waiting for participants to join...</p>
             )}
           </div>
@@ -380,7 +382,7 @@ export default function GameHostPage() {
                 onEndGame={handleEndGame} // Pass handleEndGame for "Show Final Results"
               />
             )}
-            
+
             {gameState === "question" && currentQuestionIndex >= 0 && quiz?.questions?.[currentQuestionIndex] && (
               <QuestionInProgressCard
                 question={quiz.questions[currentQuestionIndex]}
