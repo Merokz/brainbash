@@ -176,7 +176,7 @@ export function QuizForm({ quiz }: { quiz?: any }) {
                     id="title"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Enter quiz title"
+                    placeholder="enter quiz title"
                   />
                 </div>
 
@@ -186,7 +186,7 @@ export function QuizForm({ quiz }: { quiz?: any }) {
                     id="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Enter quiz description"
+                    placeholder="enter quiz description"
                     rows={4}
                   />
                 </div>

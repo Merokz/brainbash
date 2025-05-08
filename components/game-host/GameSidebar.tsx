@@ -22,7 +22,7 @@ export function GameSidebar({ participants, gameState }: GameSidebarProps) {
     <Tabs defaultValue="leaderboard" className="sticky top-20">
       <TabsList className="w-full grid grid-cols-2">
         <TabsTrigger value="leaderboard">leaderboard</TabsTrigger>
-        <TabsTrigger value="participants">participants: ({participants.length})</TabsTrigger>
+        <TabsTrigger value="participants">participants ({participants.length})</TabsTrigger>
       </TabsList>
       <TabsContent value="leaderboard">
         <Card>
@@ -55,7 +55,7 @@ export function GameSidebar({ participants, gameState }: GameSidebarProps) {
       <TabsContent value="participants">
         <Card>
           <CardHeader>
-            <CardTitle>all participants: ({participants.length})</CardTitle>
+            <CardTitle>all participants ({participants.length})</CardTitle>
           </CardHeader>
           <CardContent>
             {participants.length > 0 ? (

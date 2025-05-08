@@ -19,7 +19,7 @@ interface Question {
   answers: Answer[];
 }
 
-interface ParticipantAnswer {
+export interface ParticipantAnswer {
   participantId: number;
   questionId: number;
   answerId: number | string | null; // Allow string if IDs can be strings

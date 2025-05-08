@@ -10,6 +10,7 @@ datasource db {
 model User {
   id           Int           @id @default(autoincrement()) @map("id")
   username     String        @unique @map("username")
+  avatarUrl    String?       @map("avatar_url")
   email        String        @unique @map("email")
   password     String        @map("password")
   isRegistered Boolean       @default(true) @map("is_registered")
@@ -118,7 +119,8 @@ model ParticipantAnswer {
   participantId Int         @map("participant_id")
   questionId    Int         @map("question_id")
   answerId      Int?        @map("answer_id")
-  timeToAnswer  Int         @map("time_to_answer")
+  timeToAnswer  Int         @map("time_to_answer") // Time in seconds taken by participant
+  points        Int         @default(0) @map("points") // Points awarded for this answer
   createdAt     DateTime    @default(now()) @map("created_at")
   updatedAt     DateTime    @updatedAt @map("updated_at")
   valid         Boolean     @default(true) @map("valid")

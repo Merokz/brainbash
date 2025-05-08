@@ -169,7 +169,7 @@ export function QuestionForm({ question, index, onChange, onRemove }: QuestionFo
             id={`question-${index}`}
             value={question.questionText}
             onChange={handleQuestionTextChange}
-            placeholder="Enter your question"
+            placeholder="enter your question"
             rows={2}
           />
         </div>
@@ -219,7 +219,7 @@ export function QuestionForm({ question, index, onChange, onRemove }: QuestionFo
                 className="mt-2"
                 value={question.answers[0]?.answerText || ""}
                 onChange={(e) => handleAnswerTextChange(0, e.target.value)}
-                placeholder="Correct answer"
+                placeholder="correct answer"
               />
             </div>
           ) : question.questionType === "TRUE_FALSE" ? (
@@ -254,7 +254,7 @@ export function QuestionForm({ question, index, onChange, onRemove }: QuestionFo
                   <Input
                     value={answer.answerText}
                     onChange={(e) => handleAnswerTextChange(i, e.target.value)}
-                    placeholder={`Answer ${i + 1}`}
+                    placeholder={`answer ${i + 1}`}
                     className="flex-1"
                   />
                   <Button

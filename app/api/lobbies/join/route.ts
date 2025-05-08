@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { addParticipantToLobby, getLobbyByJoinCode, updateParticipantToken } from "@/lib/db";
+import {
+  addParticipantToLobby,
+  getLobbyByJoinCode,
+  updateParticipantToken,
+} from "@/lib/commands";
 import { createParticipantToken, getUserFromToken } from "@/lib/auth";
 import { pusherServer, CHANNELS, EVENTS } from "@/lib/pusher-service";
 
@@ -33,11 +37,7 @@ export async function POST(req: NextRequest) {
     const userId = user ? user.id : undefined;
 
     // Create a participant
-    const participant = await addParticipantToLobby(
-      lobby.id,
-      username,
-      userId
-    );
+    const participant = await addParticipantToLobby(lobby.id, username, userId);
 
     // Create a participant token
     const token = await createParticipantToken(participant.id, lobby.id);
