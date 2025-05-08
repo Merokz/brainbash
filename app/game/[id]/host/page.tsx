@@ -1,20 +1,20 @@
 'use client';
 
-import { useState, useEffect, JSX } from 'react';
-import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { getPusherClient, CHANNELS, EVENTS } from '@/lib/pusher-client';
 import { useGameTimer } from '@/hooks/game-timer';
+import { CHANNELS, EVENTS, getPusherClient } from '@/lib/pusher-client';
+import { useParams, useRouter } from 'next/navigation';
+import { JSX, useEffect, useState } from 'react';
 
-import { LobbyDisplayCard } from '@/components/game-host/LobbyDisplayCard';
+import { GameConclusionCard } from '@/components/game-host/GameConclusionCard';
+import { GameSidebar } from '@/components/game-host/GameSidebar';
 import { GameWaitingCard } from '@/components/game-host/GameWaitingCard';
+import { LobbyDisplayCard } from '@/components/game-host/LobbyDisplayCard';
 import { QuestionInProgressCard } from '@/components/game-host/QuestionInProgressCard';
 import {
     ParticipantAnswer,
     QuestionResultsCard,
 } from '@/components/game-host/QuestionResultsCard';
-import { GameConclusionCard } from '@/components/game-host/GameConclusionCard';
-import { GameSidebar } from '@/components/game-host/GameSidebar';
 import { Timer } from 'lucide-react';
 
 const GameHostPage = (): JSX.Element => {
@@ -258,6 +258,7 @@ const GameHostPage = (): JSX.Element => {
             // only if serverStartTime is set
             handleQuestionTimeout();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [timeLeft, gameState, serverStartTime, currentQuestionIndex]); // Added currentQuestionIndex
 
     // Function to start the game from the lobby view
