@@ -101,8 +101,8 @@ export default function HostGame() {
             <p className="text-muted-foreground">select a quiz to host a new game</p>
           </div>
           <Link href="/quiz/create">
-              <Button>
-                <SquarePlus className="w-8 h-8" />
+              <Button className="flex">
+                <SquarePlus className="" />
                 create a quiz
               </Button>
             </Link>
