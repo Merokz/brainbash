@@ -31,15 +31,17 @@ export function Header({ user }: HeaderProps ) {
       await fetch("/api/auth/logout", {
         method: "POST",
       })
-      router.push("/")
-      window.location.reload() // this is easier than updating everthing in the UI.
+      //redirect to home with hard reload
+      window.requestAnimationFrame(() => {
+        window.location.href = "/"
+      });
     } catch (error) {
       console.error("Logout error:", error)
     }
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="fixed top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/50">
       <div className="container flex h-14 items-center">
         <div className="mr-4 flex">
           <Link href="/" className="flex items-center space-x-2">

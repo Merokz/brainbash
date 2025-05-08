@@ -51,9 +51,10 @@ export default function Login() {
       })
 
       if (response.ok) {
-        // Login successful, redirect to home
-        router.push("/")
-        window.location.reload() // this is easier than updating everthing in the UI.
+        // Login successful, redirect to home with hard reload
+        window.requestAnimationFrame(() => {
+          window.location.href = "/"
+        });
       } else {
         const errorData = await response.json()
         setError(errorData.error || "Login failed")
