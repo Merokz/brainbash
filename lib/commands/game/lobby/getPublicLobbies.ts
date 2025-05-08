@@ -1,5 +1,6 @@
 import { cacheClient } from "@/lib/cache";
 import { Prisma } from "@prisma/client";
+import { CACHE_TTL } from "../..";
 
 type LobbyPublic = Prisma.LobbyGetPayload<{
   include: {
@@ -58,6 +59,6 @@ export async function getPublicLobbies(): Promise<LobbyPublic[]> {
           },
         },
       }),
-    CACHE_TTL // Pass the specific TTL here
+    CACHE_TTL, // Pass the specific TTL here
   );
 }

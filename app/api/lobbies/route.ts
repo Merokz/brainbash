@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createLobby, getPublicLobbies } from "@/lib/commands";
 import { getUserFromToken } from "@/lib/auth";
-import { pusherServer, CHANNELS, EVENTS } from "@/lib/pusher-service";
+import { pusherServer, EVENTS } from "@/lib/pusher-service";
 
 export async function POST(req: NextRequest) {
   try {

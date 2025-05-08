@@ -4,7 +4,7 @@ import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
 const SECRET_KEY = new TextEncoder().encode(
-  process.env.JWT_SECRET || "default-secret-key-change-in-production"
+  process.env.JWT_SECRET || "default-secret-key-change-in-production",
 );
 
 export async function hashPassword(password: string): Promise<string> {
@@ -13,7 +13,7 @@ export async function hashPassword(password: string): Promise<string> {
 
 export async function comparePasswords(
   plainPassword: string,
-  hashedPassword: string
+  hashedPassword: string,
 ): Promise<boolean> {
   return compare(plainPassword, hashedPassword);
 }
@@ -30,7 +30,7 @@ export async function createUserToken(userId: number): Promise<string> {
 
 export async function createParticipantToken(
   participantId: number,
-  lobbyId: number
+  lobbyId: number,
 ): Promise<string> {
   const token = await new SignJWT({
     participantId,
@@ -75,7 +75,7 @@ export async function getParticipantFromToken(token: string): Promise<any> {
 
   const participant = await getParticipantByIdAndLobbyId(
     payload.participantId,
-    payload.lobbyId
+    payload.lobbyId,
   );
 
   return participant;

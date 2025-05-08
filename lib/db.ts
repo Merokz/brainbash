@@ -12,7 +12,9 @@
 
 // Quiz management functions
 
-export async function invalidateAnswersForQuestion(questionId: number) {
+export async function invalidateAnswersForQuestion(
+  questionId: number,
+): Promise<any> {
   return prisma.answer.updateMany({
     where: { questionId },
     data: { valid: false },

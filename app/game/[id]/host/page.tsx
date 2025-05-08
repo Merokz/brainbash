@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { getPusherClient, CHANNELS, EVENTS } from "@/lib/pusher-client"
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { getPusherClient, CHANNELS, EVENTS } from "@/lib/pusher-client";
 import { useGameTimer } from "@/hooks/game-timer";
 
 import { LobbyDisplayCard } from "@/components/game-host/LobbyDisplayCard";
@@ -24,20 +24,26 @@ interface ParticipantAnswer {
 
 export default function GameHostPage() {
   const params = useParams<{ id: string }>();
-  const [user, setUser] = useState<any>(null);
+  const [_user, setUser] = useState<any>(null);
   const [lobbyData, setLobbyData] = useState<any>(null);
   const [quiz, setQuiz] = useState<any>(null);
   const [participants, setParticipants] = useState<any[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(-1);
-  const [gameState, setGameState] = useState<"lobby" | "waiting" | "question" | "results" | "conclusion">("lobby");
+  const [gameState, setGameState] = useState<
+    "lobby" | "waiting" | "question" | "results" | "conclusion"
+  >("lobby");
   const [loading, setLoading] = useState(true);
   const [serverStartTime, setServerStartTime] = useState<string | null>(null);
-  const [participantAnswers, setParticipantAnswers] = useState<ParticipantAnswer[]>([]);
+  const [participantAnswers, setParticipantAnswers] = useState<
+    ParticipantAnswer[]
+  >([]);
   const router = useRouter();
 
-  const timePerQuestionForHook = gameState === "question" && quiz?.questions?.[currentQuestionIndex]?.timeToAnswer
-    ? quiz.questions[currentQuestionIndex].timeToAnswer
-    : (lobbyData?.timeToAnswer || 30);
+  const timePerQuestionForHook =
+    gameState === "question" &&
+    quiz?.questions?.[currentQuestionIndex]?.timeToAnswer
+      ? quiz.questions[currentQuestionIndex].timeToAnswer
+      : lobbyData?.timeToAnswer || 30;
 
   const timeLeft = useGameTimer(serverStartTime, timePerQuestionForHook);
 
@@ -45,7 +51,7 @@ export default function GameHostPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const userResponse = await fetch('/api/auth/me');
+        const userResponse = await fetch("/api/auth/me");
         if (userResponse.ok) {
           const userData = await userResponse.json();
           setUser(userData);
@@ -64,11 +70,18 @@ export default function GameHostPage() {
           if (data.state !== "IN_LOBBY" && data.state !== "CONCLUDED") {
             setCurrentQuestionIndex(data.currentQuestionIdx ?? -1);
             if (data.state === "IN_GAME") {
-              if (data.questionStartedAt && data.currentQuestionIdx !== null && data.currentQuestionIdx !== -1) {
+              if (
+                data.questionStartedAt &&
+                data.currentQuestionIdx !== null &&
+                data.currentQuestionIdx !== -1
+              ) {
                 setGameState("question");
                 setServerStartTime(data.questionStartedAt);
-              } else if (data.currentQuestionIdx !== null && data.currentQuestionIdx !== -1) {
-                 // If questionStartedAt is null, but we have an index, it means results were shown
+              } else if (
+                data.currentQuestionIdx !== null &&
+                data.currentQuestionIdx !== -1
+              ) {
+                // If questionStartedAt is null, but we have an index, it means results were shown
                 setGameState("results");
               } else {
                 // Default to waiting if game started but no question active/ended
@@ -101,14 +114,16 @@ export default function GameHostPage() {
     const gameChannel = pusherClient.subscribe(gameChannelName);
 
     lobbyChannel.bind(EVENTS.PARTICIPANT_JOINED, (data: any) => {
-      setParticipants(prev => {
-        if (prev.some(p => p.id === data.participant.id)) return prev;
+      setParticipants((prev) => {
+        if (prev.some((p) => p.id === data.participant.id)) return prev;
         return [...prev, data.participant];
       });
     });
 
     lobbyChannel.bind(EVENTS.PARTICIPANT_LEFT, (data: any) => {
-      setParticipants(prev => prev.filter(p => p.id !== data.participantId));
+      setParticipants((prev) =>
+        prev.filter((p) => p.id !== data.participantId)
+      );
     });
 
     // GAME_STARTED event transitions from lobby UI to game waiting UI
@@ -120,24 +135,25 @@ export default function GameHostPage() {
       setGameState("waiting"); // Ready to start the first question
       setCurrentQuestionIndex(-1); // Explicitly set for "Start First Question"
     });
-    
+
     gameChannel.bind(EVENTS.ANSWER_SUBMITTED, (data: any) => {
-      setParticipants(prev =>
-        prev.map(p =>
+      setParticipants((prev) =>
+        prev.map((p) =>
           p.id === data.participantId
             ? { ...p, score: data.newScore } // Ensure score is updated
             : p
         )
       );
-      if (data.answer) { // Ensure data.answer exists
-        setParticipantAnswers(prev => [
+      if (data.answer) {
+        // Ensure data.answer exists
+        setParticipantAnswers((prev) => [
           ...prev,
           {
             participantId: data.participantId,
             questionId: data.questionId,
             answerId: data.answer.answerId, // Assuming data.answer contains answerId
             timeToAnswer: data.answer.timeToAnswer, // Assuming data.answer contains timeToAnswer
-          }
+          },
         ]);
       }
     });
@@ -151,13 +167,12 @@ export default function GameHostPage() {
       setCurrentQuestionIndex(data.questionIndex);
       setParticipantAnswers([]); // Clear answers for new question
     });
-    
+
     // Add HOST_DISCONNECTED for potential cleanup or UI update
     lobbyChannel.bind(EVENTS.HOST_DISCONNECTED, () => {
-        // Handle host disconnection if necessary, e.g., show a message
-        console.log("Host disconnected event received");
+      // Handle host disconnection if necessary, e.g., show a message
+      console.log("Host disconnected event received");
     });
-
 
     return () => {
       pusherClient.unsubscribe(lobbyChannelName);
@@ -167,7 +182,8 @@ export default function GameHostPage() {
 
   // Monitor timeLeft for auto-transitioning to results
   useEffect(() => {
-    if (gameState === "question" && timeLeft <= 0 && serverStartTime) { // only if serverStartTime is set
+    if (gameState === "question" && timeLeft <= 0 && serverStartTime) {
+      // only if serverStartTime is set
       handleQuestionTimeout();
     }
   }, [timeLeft, gameState, serverStartTime, currentQuestionIndex]); // Added currentQuestionIndex
@@ -191,10 +207,11 @@ export default function GameHostPage() {
 
   const handleStartQuestion = async () => {
     if (!quiz || !lobbyData) return;
-    
+
     const isEndingGame = currentQuestionIndex >= quiz.questions.length - 1;
 
-    if (isEndingGame) { // This case should be handled by the button in QuestionResultsCard or GameWaitingCard
+    if (isEndingGame) {
+      // This case should be handled by the button in QuestionResultsCard or GameWaitingCard
       handleEndGame();
       return;
     }
@@ -205,8 +222,11 @@ export default function GameHostPage() {
 
     const question = quiz.questions[newIndex];
     // Use timeToAnswer from lobbyData as default, then quiz, then question, then 30
-    const timeToAnswer = question.timeToAnswer || quiz.timeToAnswer || lobbyData.timeToAnswer || 30;
-
+    const timeToAnswer =
+      question.timeToAnswer ||
+      quiz.timeToAnswer ||
+      lobbyData.timeToAnswer ||
+      30;
 
     try {
       const response = await fetch(`/api/lobbies/${params.id}/question/start`, {
@@ -225,8 +245,9 @@ export default function GameHostPage() {
 
   const handleQuestionTimeout = async () => {
     // Ensure we are in 'question' state and it's the current question timing out
-    if (gameState !== "question" || !lobbyData || serverStartTime === null) return;
-    
+    if (gameState !== "question" || !lobbyData || serverStartTime === null)
+      return;
+
     setGameState("results");
     setServerStartTime(null);
 
@@ -248,7 +269,7 @@ export default function GameHostPage() {
     if (!lobbyData) return;
     try {
       const response = await fetch(`/api/lobbies/${params.id}/end`, {
-        method: "POST"
+        method: "POST",
       });
       if (response.ok) {
         setGameState("conclusion");
@@ -271,11 +292,11 @@ export default function GameHostPage() {
       await navigator.clipboard.writeText(text);
       alert("Join code copied to clipboard!");
     } catch (err) {
-      console.warn('navigator.clipboard failed', err);
+      console.warn("navigator.clipboard failed", err);
       alert("Failed to copy code.");
     }
   };
-  
+
   // This useEffect might be redundant if QUESTION_STARTED event clears answers
   // useEffect(() => {
   //   if (gameState === "question") {
@@ -292,7 +313,7 @@ export default function GameHostPage() {
   }
 
   if (!lobbyData && (gameState === "lobby" || !quiz)) {
-     return (
+    return (
       <div className="flex min-h-screen flex-col">
         <main className="flex-1 container py-8">
           <h1 className="text-3xl font-bold mb-4">lobby or quiz not found.</h1>
@@ -301,12 +322,15 @@ export default function GameHostPage() {
       </div>
     );
   }
-  
-  if (!quiz && gameState !== "lobby" && gameState !== "conclusion") { // Allow conclusion if quiz becomes null post-game
+
+  if (!quiz && gameState !== "lobby" && gameState !== "conclusion") {
+    // Allow conclusion if quiz becomes null post-game
     return (
       <div className="flex min-h-screen flex-col">
         <main className="flex-1 container py-8">
-          <h1 className="text-3xl font-bold mb-4">quiz data is missing for the current game state.</h1>
+          <h1 className="text-3xl font-bold mb-4">
+            quiz data is missing for the current game state.
+          </h1>
           <Button onClick={handleReturnToHome}>return to home</Button>
         </main>
       </div>
@@ -317,20 +341,24 @@ export default function GameHostPage() {
   // Default time per question from lobby, then quiz, then 30
   const timePerQuestion = lobbyData?.timeToAnswer || quiz?.timeToAnswer || 30;
 
-
   return (
     <div className="flex min-h-screen flex-col">
       <main className="flex-1 container py-8">
         <div className="mb-8 flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold">{currentQuizTitle}</h1>
-            {gameState !== "lobby" && gameState !== "conclusion" && currentQuestionIndex >= 0 && quiz?.questions && (
+            {gameState !== "lobby" &&
+              gameState !== "conclusion" &&
+              currentQuestionIndex >= 0 &&
+              quiz?.questions && (
+                <p className="text-muted-foreground">
+                  question {currentQuestionIndex + 1} of {quiz.questions.length}
+                </p>
+              )}
+            {gameState === "lobby" && (
               <p className="text-muted-foreground">
-                question {currentQuestionIndex + 1} of {quiz.questions.length}
+                waiting for participants to join...
               </p>
-            )}
-             {gameState === "lobby" && (
-              <p className="text-muted-foreground">waiting for participants to join...</p>
             )}
           </div>
           {gameState === "question" && (
@@ -362,28 +390,41 @@ export default function GameHostPage() {
                 onEndGame={handleEndGame} // Pass handleEndGame for "Show Final Results"
               />
             )}
-            
-            {gameState === "question" && currentQuestionIndex >= 0 && quiz?.questions?.[currentQuestionIndex] && (
-              <QuestionInProgressCard
-                question={quiz.questions[currentQuestionIndex]}
-                questionNumber={currentQuestionIndex + 1}
-                timeLeft={timeLeft}
-                timePerQuestion={quiz.questions[currentQuestionIndex].timeToAnswer || timePerQuestion}
-                answeredCount={participantAnswers.length}
-                totalParticipants={participants.length}
-                onEndQuestionEarly={handleQuestionTimeout}
-              />
-            )}
 
-            {gameState === "results" && currentQuestionIndex >= 0 && quiz?.questions?.[currentQuestionIndex] && (
-              <QuestionResultsCard
-                question={quiz.questions[currentQuestionIndex]}
-                questionNumber={currentQuestionIndex + 1}
-                participantAnswers={participantAnswers}
-                isLastQuestion={currentQuestionIndex >= quiz.questions.length - 1}
-                onNextAction={currentQuestionIndex >= quiz.questions.length - 1 ? handleEndGame : handleStartQuestion}
-              />
-            )}
+            {gameState === "question" &&
+              currentQuestionIndex >= 0 &&
+              quiz?.questions?.[currentQuestionIndex] && (
+                <QuestionInProgressCard
+                  question={quiz.questions[currentQuestionIndex]}
+                  questionNumber={currentQuestionIndex + 1}
+                  timeLeft={timeLeft}
+                  timePerQuestion={
+                    quiz.questions[currentQuestionIndex].timeToAnswer ||
+                    timePerQuestion
+                  }
+                  answeredCount={participantAnswers.length}
+                  totalParticipants={participants.length}
+                  onEndQuestionEarly={handleQuestionTimeout}
+                />
+              )}
+
+            {gameState === "results" &&
+              currentQuestionIndex >= 0 &&
+              quiz?.questions?.[currentQuestionIndex] && (
+                <QuestionResultsCard
+                  question={quiz.questions[currentQuestionIndex]}
+                  questionNumber={currentQuestionIndex + 1}
+                  participantAnswers={participantAnswers}
+                  isLastQuestion={
+                    currentQuestionIndex >= quiz.questions.length - 1
+                  }
+                  onNextAction={
+                    currentQuestionIndex >= quiz.questions.length - 1
+                      ? handleEndGame
+                      : handleStartQuestion
+                  }
+                />
+              )}
 
             {gameState === "conclusion" && (
               <GameConclusionCard
@@ -402,4 +443,3 @@ export default function GameHostPage() {
     </div>
   );
 }
-

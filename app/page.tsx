@@ -1,11 +1,7 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { getUserFromToken } from "@/lib/auth"
-import { HomeHero } from "@/components/home-hero"
-import { PublicLobbies } from "@/components/public-lobbies"
-import { JoinPrivateGame } from "@/components/join-private-game"
-import logoBanner from "@/public/logo.png";
-import Image from "next/image";
+import { getUserFromToken } from "@/lib/auth";
+import { HomeHero } from "@/components/home-hero";
+import { PublicLobbies } from "@/components/public-lobbies";
+import { JoinPrivateGame } from "@/components/join-private-game";
 
 export default async function Home() {
   const user = await getUserFromToken();
@@ -27,5 +23,5 @@ export default async function Home() {
         </div>
       </footer>
     </div>
-  )
+  );
 }

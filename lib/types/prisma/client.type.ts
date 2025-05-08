@@ -7,10 +7,10 @@ import {
 export type PrismaClient = DynamicClientExtensionThis<
   Prisma.TypeMap<
     InternalArgs & {
-      result: {};
-      model: {};
-      query: {};
-      client: {};
+      result: any;
+      model: any;
+      query: any;
+      client: any;
     },
     {}
   >,
@@ -23,9 +23,9 @@ export type PrismaClient = DynamicClientExtensionThis<
     };
   }>,
   {
-    result: {};
-    model: {};
-    query: {};
-    client: {};
+    result: any;
+    model: any;
+    query: any;
+    client: any;
   }
 >;

@@ -17,7 +17,7 @@ export async function POST(
     const lobbyId = Number(params.id);
 
     // End the game in the database
-    const updatedLobby = await endGame(lobbyId);
+    await endGame(lobbyId);
 
     // Get the final results
     const results = await getGameResults(lobbyId);

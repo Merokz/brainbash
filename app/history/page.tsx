@@ -1,9 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
-import { redirect } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -11,10 +8,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { getHistory } from "@/lib/commands";
 
 export default function History() {
-  const [user, setUser] = useState<any>(null);
+  const [_user, setUser] = useState<any>(null);
   const [lobbies, setLobbies] = useState<any[]>([null]);
   const [loading, setLoading] = useState(true);
 
@@ -85,7 +81,7 @@ export default function History() {
             })}
           </div>
         ) : (
-          <h2>no history (yet ;))</h2>
+          <h2>no history (yet ;)</h2>
         )}
       </main>
     </div>

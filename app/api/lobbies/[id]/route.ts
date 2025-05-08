@@ -13,7 +13,6 @@ export async function GET(
     // In Next.js App Router, params should be properly accessed
     const { id } = await params;
 
-    const user = await getUserFromToken();
     const lobbyId = Number(id);
     if (isNaN(lobbyId)) {
       return NextResponse.json({ error: "Invalid lobby ID" }, { status: 400 });

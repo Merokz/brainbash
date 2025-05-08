@@ -1,7 +1,10 @@
 import { writeFile } from "fs/promises";
 import path from "path";
 
-export async function saveBase64Image(base64: string, fileName: string) {
+export async function saveBase64Image(
+  base64: string,
+  fileName: string,
+): Promise<string> {
   const matches = base64.match(/^data:image\/(png|jpeg|jpg);base64,(.+)$/);
 
   if (!matches) {
