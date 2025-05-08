@@ -58,6 +58,12 @@ export async function POST(req: NextRequest) {
       // Check if this is a user or a participant
       const user = await getUserFromToken();
       
+      if (user) {
+        console.log("Pusher Auth: User found:", user.id);
+      } else {
+        console.log("Pusher Auth: No user found, checking for participant token.");
+      }
+
       // If we have a user token, authenticate as the user
       if (user) {
         console.log("Pusher Auth: Authenticating as user:", user.id);

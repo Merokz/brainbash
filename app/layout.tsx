@@ -27,7 +27,7 @@ export default async function RootLayout({
       <body className={inter.className} suppressHydrationWarning={true}>
         <Providers>
           <Header user={user} />
-          {children}
+          {children} 
         </Providers>
       </body>
     </html>
