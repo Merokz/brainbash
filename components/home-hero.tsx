@@ -11,6 +11,7 @@ export function HomeHero({ user }: HomeHeroProps) {
       className="w-full py-12 md:py-24 lg:py-32 bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: "url('/hero_transparent.png')" }}
     >
+      <div className="h-14"></div>
       <div className="w-full h-full">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center space-y-4 text-center">
