@@ -1,14 +1,13 @@
 'use client';
 
-import { useParams } from 'next/navigation';
-import { useState, useEffect, useCallback, JSX } from 'react';
-import { useRouter } from 'next/navigation';
-import { getPusherClient, CHANNELS, EVENTS } from '@/lib/pusher-client';
-import { useGameTimer } from '@/hooks/game-timer';
-import { GameWaitingScreen } from '@/components/game-client/GameWaitingScreen';
+import { GameConclusionScreen } from '@/components/game-client/GameConclusionScreen';
 import { GameQuestionScreen } from '@/components/game-client/GameQuestionScreen';
 import { GameResultsScreen } from '@/components/game-client/GameResultsScreen';
-import { GameConclusionScreen } from '@/components/game-client/GameConclusionScreen';
+import { GameWaitingScreen } from '@/components/game-client/GameWaitingScreen';
+import { useGameTimer } from '@/hooks/game-timer';
+import { CHANNELS, EVENTS, getPusherClient } from '@/lib/pusher-client';
+import { useParams, useRouter } from 'next/navigation';
+import { JSX, useCallback, useEffect, useState } from 'react';
 
 // Define types for game data
 interface Answer {
@@ -76,8 +75,17 @@ const GamePage = (): JSX.Element => {
         setToken(storedToken);
 
         const pusherClient = getPusherClient();
-        const gameChannelName = CHANNELS.game(params.id);
+        const lobbyChannelName = CHANNELS.lobby(params.id); // Presence channel
+        const gameChannelName = CHANNELS.game(params.id); // Private channel
+
+        const lobbyChannel = pusherClient.subscribe(lobbyChannelName);
         const gameChannel = pusherClient.subscribe(gameChannelName);
+
+        // Bind to lobby channel events if needed by participant UI, e.g., to show other users.
+        // For now, just subscribing is enough for presence.
+        // lobbyChannel.bind('pusher:subscription_succeeded', () => console.log('Subscribed to presence lobby channel'));
+        // lobbyChannel.bind('pusher:member_added', (member: any) => console.log('Member added to lobby:', member.id));
+        // lobbyChannel.bind('pusher:member_removed', (member: any) => console.log('Member removed from lobby:', member.id));
 
         gameChannel.bind(EVENTS.GAME_STARTED, (data: any) => {
             // Quiz data not directly used by client beyond knowing game started
@@ -135,8 +143,10 @@ const GamePage = (): JSX.Element => {
         });
 
         return () => {
+            pusherClient.unsubscribe(lobbyChannelName); // Unsubscribe from lobby channel
             pusherClient.unsubscribe(gameChannelName);
             // Potentially unbind specific events if needed, though unsubscribe usually handles it.
+            // lobbyChannel.unbind_all(); // If specific binds were added above
             gameChannel.unbind_all();
         };
     }, [params.id, router]);

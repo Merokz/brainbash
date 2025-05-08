@@ -1,16 +1,17 @@
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 interface HomeHeroProps {
     user: any;
 }
 
-export const HomeHero = ({ user }: HomeHeroProps) => {
+export function HomeHero({ user }: HomeHeroProps) {
     return (
         <section
             className="w-full py-12 md:py-24 lg:py-32 bg-cover bg-center bg-no-repeat"
             style={{ backgroundImage: "url('/hero_transparent.png')" }}
         >
+            <div className="h-14"></div>
             <div className="w-full h-full">
                 <div className="container px-4 md:px-6">
                     <div className="flex flex-col items-center space-y-4 text-center">
@@ -34,7 +35,11 @@ export const HomeHero = ({ user }: HomeHeroProps) => {
                                 </Link>
                             )}
                             <Link href="#join-game">
-                                <Button variant="outline" size="lg">
+                                <Button
+                                    variant="outline"
+                                    size="lg"
+                                    className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/50"
+                                >
                                     join a game
                                 </Button>
                             </Link>
@@ -44,4 +49,4 @@ export const HomeHero = ({ user }: HomeHeroProps) => {
             </div>
         </section>
     );
-};
+}

@@ -2,8 +2,7 @@
 
 import type React from 'react';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 import {
     Card,
     CardContent,
@@ -11,9 +10,10 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export const JoinPrivateGame = () => {
     const [joinCode, setJoinCode] = useState('');
@@ -44,10 +44,17 @@ export const JoinPrivateGame = () => {
 
             if (response.ok) {
                 const data = await response.json();
-
+                console.log(
+                    'Received token from /api/lobbies/join:',
+                    data.token,
+                );
                 // Store participant token in localStorage
                 localStorage.setItem('participant_token', data.token);
                 localStorage.setItem('lobby_id', data.lobby.id.toString());
+                console.log(
+                    'Participant token stored in localStorage:',
+                    localStorage.getItem('participant_token'),
+                );
 
                 // Redirect to game page
                 router.push(`/game/${data.lobby.id}`);

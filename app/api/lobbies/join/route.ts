@@ -1,11 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { createParticipantToken, getUserFromToken } from '@/lib/auth';
 import {
     addParticipantToLobby,
     getLobbyByJoinCode,
     updateParticipantToken,
 } from '@/lib/commands';
-import { createParticipantToken, getUserFromToken } from '@/lib/auth';
-import { pusherServer, CHANNELS, EVENTS } from '@/lib/pusher-service';
+import { NextRequest, NextResponse } from 'next/server';
 
 export const POST = async (req: NextRequest): Promise<any> => {
     try {
@@ -51,19 +50,6 @@ export const POST = async (req: NextRequest): Promise<any> => {
 
         // Update the participant with the token
         await updateParticipantToken(participant.id, token);
-
-        // Notify all clients in the lobby that a new participant has joined
-        await pusherServer.trigger(
-            CHANNELS.lobby(lobby.id.toString()),
-            EVENTS.PARTICIPANT_JOINED,
-            {
-                participant: {
-                    id: participant.id,
-                    username: participant.username,
-                    score: participant.score,
-                },
-            },
-        );
 
         return NextResponse.json({
             token,

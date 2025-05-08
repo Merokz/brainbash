@@ -1,7 +1,5 @@
 'use client';
 
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -12,6 +10,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import logoBanner from '@/public/logo.png';
 import Image from 'next/image';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface HeaderProps {
     user: {
@@ -41,7 +41,7 @@ export const Header = ({ user }: HeaderProps) => {
     };
 
     return (
-        <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <header className="fixed top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/50">
             <div className="container flex h-14 items-center">
                 <div className="mr-4 flex">
                     <Link href="/" className="flex items-center space-x-2">

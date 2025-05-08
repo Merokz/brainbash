@@ -1,7 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { getParticipantFromToken, getUserFromToken } from '@/lib/auth';
 import { pusherServer } from '@/lib/pusher-service';
-import { getUserFromToken } from '@/lib/auth';
-import { getParticipantFromToken } from '@/lib/auth';
+import { NextRequest, NextResponse } from 'next/server';
 
 // Define allowed methods for this route
 export const dynamic = 'force-dynamic';
@@ -53,6 +52,10 @@ export const POST = async (req: NextRequest): Promise<any> => {
             // Extract the lobby ID from the channel name
             const lobbyId = channel_name.split('presence-lobby-')[1];
             if (!lobbyId) {
+                console.error(
+                    'Pusher Auth: Invalid presence channel name, missing lobbyId:',
+                    channel_name,
+                );
                 return NextResponse.json(
                     { error: 'Invalid channel name' },
                     { status: 400 },
@@ -62,9 +65,17 @@ export const POST = async (req: NextRequest): Promise<any> => {
             // Check if this is a user or a participant
             const user = await getUserFromToken();
 
+            if (user) {
+                console.log('Pusher Auth: User found:', user.id);
+            } else {
+                console.log(
+                    'Pusher Auth: No user found, checking for participant token.',
+                );
+            }
+
             // If we have a user token, authenticate as the user
             if (user) {
-                console.log('Authenticating user:', user.id);
+                console.log('Pusher Auth: Authenticating as user:', user.id);
                 const userData = {
                     user_id: `user-${user.id}`,
                     user_info: {
@@ -82,32 +93,68 @@ export const POST = async (req: NextRequest): Promise<any> => {
             }
 
             // If there's no user token, look for a participant token
+            console.log(
+                'Pusher Auth: No user token found or user auth failed. Attempting participant authentication for lobby:',
+                lobbyId,
+            );
             const authHeader = req.headers.get('authorization');
             if (authHeader && authHeader.startsWith('Bearer ')) {
                 const token = authHeader.substring(7);
+                console.log('Pusher Auth: Found Bearer token for participant.');
+
                 const participant = await getParticipantFromToken(token);
 
-                if (participant && participant.lobbyId === Number(lobbyId)) {
-                    console.log('Authenticating participant:', participant.id);
-                    const userData = {
-                        user_id: `participant-${participant.id}`,
-                        user_info: {
-                            name: participant.username,
-                            isHost: false,
-                        },
-                    };
-
-                    const authResponse = pusherServer.authorizeChannel(
-                        socket_id,
-                        channel_name,
-                        userData,
+                if (participant) {
+                    console.log('Pusher Auth: Participant data from token:', {
+                        id: participant.id,
+                        username: participant.username,
+                        lobbyId: participant.lobbyId,
+                    });
+                    console.log(
+                        `Pusher Auth: Comparing participant.lobbyId (${participant.lobbyId}, type: ${typeof participant.lobbyId}) with channel lobbyId string ('${lobbyId}', parsed as number: ${Number(lobbyId)})`,
                     );
-                    return NextResponse.json(authResponse);
+
+                    // Ensure consistent type comparison, Prisma typically returns numbers for IDs.
+                    if (participant.lobbyId === Number(lobbyId)) {
+                        console.log(
+                            'Pusher Auth: Participant authenticated successfully for lobby:',
+                            lobbyId,
+                        );
+                        const userData = {
+                            user_id: `participant-${participant.id}`,
+                            user_info: {
+                                name: participant.username,
+                                isHost: false,
+                            },
+                        };
+
+                        const authResponse = pusherServer.authorizeChannel(
+                            socket_id,
+                            channel_name,
+                            userData,
+                        );
+                        return NextResponse.json(authResponse);
+                    } else {
+                        console.error(
+                            `Pusher Auth: Participant's lobbyId (${participant.lobbyId}) does not match channel's lobbyId (${Number(lobbyId)}).`,
+                        );
+                    }
+                } else {
+                    console.error(
+                        'Pusher Auth: getParticipantFromToken returned null. Token might be invalid, expired, or participant not found in DB for the details in token.',
+                    );
                 }
+            } else {
+                console.error(
+                    'Pusher Auth: No Authorization header with Bearer token found for participant.',
+                );
             }
 
             // Neither a valid user nor participant token was provided
-            console.log('Authentication failed: unauthorized');
+            console.error(
+                'Pusher Auth: Authentication failed: unauthorized. User and participant checks did not pass for channel:',
+                channel_name,
+            );
             return NextResponse.json(
                 { error: 'Unauthorized' },
                 { status: 401 },

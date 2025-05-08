@@ -1,11 +1,12 @@
-import type React from 'react';
-import './globals.css';
+import { Header } from '@/components/header';
+import Providers from '@/components/providers';
+import { getUserFromToken } from '@/lib/auth';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import Providers from '@/components/providers';
-import { Header } from '@/components/header';
-import { getUserFromToken } from '@/lib/auth';
+import { cookies } from 'next/headers';
+import type React from 'react';
 import { JSX } from 'react';
+import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -22,8 +23,10 @@ const RootLayout = async ({
     children: React.ReactNode;
 }): Promise<JSX.Element> => {
     const user = await getUserFromToken();
+    const cookieStore = await cookies(); // Get cookies
+    const theme = cookieStore.get('theme')?.value; // Get the theme value
     return (
-        <html lang="en">
+        <html lang="en" className={theme === 'dark' ? 'dark' : ''}>
             <body className={inter.className} suppressHydrationWarning={true}>
                 <Providers>
                     <Header user={user} />
