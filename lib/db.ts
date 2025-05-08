@@ -404,6 +404,7 @@ export async function recordParticipantAnswer(
   questionId: number,
   answerId: number | null,
   timeToAnswer: number,
+  points: number = 0,
 ) {
   return prisma.participantAnswer.create({
     data: {
@@ -411,6 +412,7 @@ export async function recordParticipantAnswer(
       questionId,
       answerId,
       timeToAnswer,
+      points,
     },
   })
 }
@@ -701,3 +703,13 @@ export async function getHistory(userId: number) {
     throw new Error("Could not retrieve participation history.");
   }
 }
+
+export async function getQuestionById(questionId: number) {
+  return prisma.question.findUnique({
+    where: { id: questionId },
+    include: {
+      answers: true,
+    },
+  });
+}
+

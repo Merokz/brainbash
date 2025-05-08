@@ -389,7 +389,7 @@ export default function GameHostPage() {
                 question={quiz.questions[currentQuestionIndex]}
                 questionNumber={currentQuestionIndex + 1}
                 timeLeft={timeLeft}
-                timePerQuestion={quiz.questions[currentQuestionIndex].timeToAnswer || timePerQuestion}
+                // timePerQuestion={quiz.questions[currentQuestionIndex].timeToAnswer || timePerQuestion}
                 answeredCount={participantAnswers.length}
                 totalParticipants={participants.length}
                 onEndQuestionEarly={handleQuestionTimeout}
