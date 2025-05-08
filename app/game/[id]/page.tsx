@@ -69,9 +69,19 @@ export default function GamePage() {
     setToken(storedToken);
 
     const pusherClient = getPusherClient();
-    const gameChannelName = CHANNELS.game(params.id);
+    const lobbyChannelName = CHANNELS.lobby(params.id); // Presence channel
+    const gameChannelName = CHANNELS.game(params.id);   // Private channel
+    
+    const lobbyChannel = pusherClient.subscribe(lobbyChannelName);
     const gameChannel = pusherClient.subscribe(gameChannelName);
     
+    // Bind to lobby channel events if needed by participant UI, e.g., to show other users.
+    // For now, just subscribing is enough for presence.
+    // lobbyChannel.bind('pusher:subscription_succeeded', () => console.log('Subscribed to presence lobby channel'));
+    // lobbyChannel.bind('pusher:member_added', (member: any) => console.log('Member added to lobby:', member.id));
+    // lobbyChannel.bind('pusher:member_removed', (member: any) => console.log('Member removed from lobby:', member.id));
+
+
     gameChannel.bind(EVENTS.GAME_STARTED, (data: any) => {
       // Quiz data not directly used by client beyond knowing game started
       // Client waits for QUESTION_STARTED
@@ -113,8 +123,10 @@ export default function GamePage() {
     });
     
     return () => {
+      pusherClient.unsubscribe(lobbyChannelName); // Unsubscribe from lobby channel
       pusherClient.unsubscribe(gameChannelName);
       // Potentially unbind specific events if needed, though unsubscribe usually handles it.
+      // lobbyChannel.unbind_all(); // If specific binds were added above
       gameChannel.unbind_all();
     };
   }, [params.id, router]);

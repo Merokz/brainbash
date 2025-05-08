@@ -45,19 +45,6 @@ export async function POST(req: NextRequest) {
     // Update the participant with the token
     await updateParticipantToken(participant.id, token);
 
-    // Notify all clients in the lobby that a new participant has joined
-    await pusherServer.trigger(
-      CHANNELS.lobby(lobby.id.toString()),
-      EVENTS.PARTICIPANT_JOINED,
-      {
-        participant: {
-          id: participant.id,
-          username: participant.username,
-          score: participant.score,
-        },
-      }
-    );
-
     return NextResponse.json({
       token,
       participant,

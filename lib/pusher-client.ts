@@ -14,6 +14,15 @@ export function getPusherClient() {
       {
         cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER || "eu",
         authEndpoint: '/api/pusher/auth',
+        auth: {
+          headers: () => {
+            const token = typeof window !== 'undefined' ? localStorage.getItem("participant_token") : null;
+            if (token) {
+              return { Authorization: `Bearer ${token}` };
+            }
+            return {};
+          },
+        },
         enabledTransports: ["ws", "wss"],
         activityTimeout: 30000,
         pongTimeout: 15000
