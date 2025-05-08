@@ -131,7 +131,7 @@ export function PublicLobbies() {
                   id="username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Your display name"
+                  placeholder="your display name"
                 />
               </div>
               <Button className="w-full" onClick={handleJoinLobby} disabled={!username.trim()}>
