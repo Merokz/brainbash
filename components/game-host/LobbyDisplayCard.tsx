@@ -24,8 +24,8 @@ export function LobbyDisplayCard({
     <>
       <Card className="mb-8">
         <CardHeader>
-          <CardTitle>Share Join Code</CardTitle>
-          <CardDescription>Participants use this code to join the lobby.</CardDescription>
+          <CardTitle>share join code</CardTitle>
+          <CardDescription>participants use this code to join the lobby.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-4">
           <div className="text-5xl font-bold tracking-wider p-4 border-2 border-dashed border-primary rounded-lg">
@@ -33,7 +33,7 @@ export function LobbyDisplayCard({
           </div>
           <Button variant="outline" onClick={onCopyJoinCode} className="w-full max-w-xs">
             <Copy className="mr-2 h-4 w-4" />
-            Copy Code
+            copy code
           </Button>
           {joinLink && (
             <div className="p-2 bg-white rounded-lg shadow">
@@ -42,14 +42,14 @@ export function LobbyDisplayCard({
           )}
           {joinLink && (
             <p className="text-sm text-muted-foreground text-center">
-              Or share this link: <a href={joinLink} target="_blank" rel="noopener noreferrer" className="underline">{joinLink}</a>
+              or share this link: <a href={joinLink} target="_blank" rel="noopener noreferrer" className="underline">{joinLink}</a>
             </p>
           )}
         </CardContent>
       </Card>
       <div className="flex justify-end">
         <Button size="lg" onClick={onStartGame} disabled={participantsCount === 0}>
-          Start Game ({participantsCount} {participantsCount === 1 ? "player" : "players"})
+          start game ({participantsCount} {participantsCount === 1 ? "player" : "players"})
           <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </div>

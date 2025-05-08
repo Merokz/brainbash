@@ -43,18 +43,18 @@ export function QuestionInProgressCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Question {questionNumber}</CardTitle>
+        <CardTitle>question {questionNumber}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="mb-4">
           <div className="flex justify-between items-center mb-2">
-            <div className="text-sm font-medium">Time remaining</div>
+            <div className="text-sm font-medium">time remaining</div>
             <div className="text-sm font-medium">{Math.ceil(timeLeft)}s</div>
           </div>
           <Progress value={timeLimit > 0 ? (timeLeft / timeLimit) * 100 : 0} />
         </div>
 
-        <h2 className="text-xl font-semibold mb-2">Type: {question.questionType}</h2>
+        <h2 className="text-xl font-semibold mb-2">type: {question.questionType}</h2>
         {question.image && (
           <div className="my-4 flex justify-center">
             <Image src={question.image} alt="Question image" width={300} height={200} className="rounded-md object-contain" />
@@ -71,7 +71,7 @@ export function QuestionInProgressCard({
             >
               <span className="text-lg">{answer.answerText}</span>
               {answer.isCorrect && (
-                <span className="text-xs font-semibold uppercase text-green-600 dark:text-green-400 px-2 py-1 bg-green-200 dark:bg-green-800 rounded-full">Correct</span>
+                <span className="text-xs font-semibold uppercase text-green-600 dark:text-green-400 px-2 py-1 bg-green-200 dark:bg-green-800 rounded-full">correct</span>
               )}
             </div>
           ))}
@@ -80,10 +80,10 @@ export function QuestionInProgressCard({
         <div className="mt-8 flex items-center justify-between">
           <div className="text-sm text-muted-foreground flex items-center">
             <AlertCircle className="h-4 w-4 inline mr-1.5" />
-            Waiting for participants to answer... ({answeredCount}/{totalParticipants} answered)
+            waiting for participants to answer... ({answeredCount}/{totalParticipants} answered)
           </div>
           <Button variant="outline" onClick={onEndQuestionEarly} disabled={timeLeft <= 0}>
-            End Question Early
+            end question early
           </Button>
         </div>
       </CardContent>

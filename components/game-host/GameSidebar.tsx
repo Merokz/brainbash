@@ -21,13 +21,13 @@ export function GameSidebar({ participants, gameState }: GameSidebarProps) {
   return (
     <Tabs defaultValue="leaderboard" className="sticky top-20">
       <TabsList className="w-full grid grid-cols-2">
-        <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
-        <TabsTrigger value="participants">Participants ({participants.length})</TabsTrigger>
+        <TabsTrigger value="leaderboard">leaderboard</TabsTrigger>
+        <TabsTrigger value="participants">participants ({participants.length})</TabsTrigger>
       </TabsList>
       <TabsContent value="leaderboard">
         <Card>
           <CardHeader>
-            <CardTitle>Live Leaderboard</CardTitle>
+            <CardTitle>live leaderboard</CardTitle>
           </CardHeader>
           <CardContent>
             {participants.length > 0 ? (
@@ -46,7 +46,7 @@ export function GameSidebar({ participants, gameState }: GameSidebarProps) {
               </div>
             ) : (
               <div className="py-6 text-center text-muted-foreground">
-                No participants yet.
+                no participants yet.
               </div>
             )}
           </CardContent>
@@ -55,7 +55,7 @@ export function GameSidebar({ participants, gameState }: GameSidebarProps) {
       <TabsContent value="participants">
         <Card>
           <CardHeader>
-            <CardTitle>All Participants ({participants.length})</CardTitle>
+            <CardTitle>all participants ({participants.length})</CardTitle>
           </CardHeader>
           <CardContent>
             {participants.length > 0 ? (
@@ -69,7 +69,7 @@ export function GameSidebar({ participants, gameState }: GameSidebarProps) {
               </div>
             ) : (
               <div className="py-6 text-center text-muted-foreground">
-                No participants have joined yet.
+                no participants have joined yet.
               </div>
             )}
           </CardContent>

@@ -5,7 +5,6 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { DashboardHeader } from "@/components/dashboard-header"
 import { getHistory } from '@/lib/db';
 
 export default function History() {
@@ -58,7 +57,7 @@ export default function History() {
     <div className="flex min-h-screen flex-col">
       <main className="flex-1 container py-8">
         <div className="flex items-center mb-8">
-          <h1 className="text-3xl font-bold">History</h1>
+          <h1 className="text-3xl font-bold">history</h1>
         </div>
 
         {lobbies.length > 0 ? 
@@ -71,13 +70,13 @@ export default function History() {
                             <CardDescription>{lobby.lobby.quiz.description}</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                Points: {lobby.score}
+                                points: {lobby.score}
                             </CardContent>
                         </Card>
                     )})
                 }
             </div>
-            : <h2>No history (yet ;))</h2>
+            : <h2>no history (yet ;))</h2>
         }
         
       </main>

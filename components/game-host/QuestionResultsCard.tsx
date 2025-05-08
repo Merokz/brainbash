@@ -46,7 +46,7 @@ export function QuestionResultsCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Results: Question {questionNumber}</CardTitle>
+        <CardTitle>results: question {questionNumber}</CardTitle>
       </CardHeader>
       <CardContent>
         {question.image && (
@@ -74,12 +74,12 @@ export function QuestionResultsCard({
                   </span>
                 </div>
                 <Progress value={percentage} className={`${answer.isCorrect ? "bg-green-500" : ""}`} />
-                {answer.isCorrect && <div className="text-xs text-green-600 dark:text-green-500 mt-1">Correct Answer</div>}
+                {answer.isCorrect && <div className="text-xs text-green-600 dark:text-green-500 mt-1">correct answer</div>}
               </div>
             );
           })}
           <div className="mt-4 text-sm text-muted-foreground">
-            Total answers recorded for this question: {totalValidAnswers}
+            total answers recorded for this question: {totalValidAnswers}
           </div>
         </div>
 
@@ -87,7 +87,7 @@ export function QuestionResultsCard({
           <Button onClick={onNextAction} size="lg">
             {isLastQuestion ? "Show Final Results" : (
               <>
-                Next Question
+                next question
                 <ChevronRight className="ml-2 h-4 w-4" />
               </>
             )}

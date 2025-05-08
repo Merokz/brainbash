@@ -60,33 +60,33 @@ export function JoinPrivateGame() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Join Private Game</CardTitle>
-        <CardDescription>Enter a 5-digit code to join a private quiz game</CardDescription>
+        <CardTitle>join private game</CardTitle>
+        <CardDescription>enter a 5-digit code to join a private quiz game</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleJoinGame} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="join-code">Game Code</Label>
+            <Label htmlFor="join-code">game code</Label>
             <Input
               id="join-code"
               value={joinCode}
               onChange={(e) => setJoinCode(e.target.value)}
-              placeholder="Enter 5-digit code"
+              placeholder="enter 5-digit code"
               maxLength={5}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="username">Your Name</Label>
+            <Label htmlFor="username">your name</Label>
             <Input
               id="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter your display name"
+              placeholder="enter your display name"
             />
           </div>
           {error && <div className="text-sm text-red-500">{error}</div>}
           <Button type="submit" className="w-full" disabled={!joinCode.trim() || !username.trim() || loading}>
-            {loading ? "Joining..." : "Join Game"}
+            {loading ? "joining..." : "join game"}
           </Button>
         </form>
       </CardContent>

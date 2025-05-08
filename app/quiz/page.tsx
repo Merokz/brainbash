@@ -6,7 +6,6 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { DashboardHeader } from "@/components/dashboard-header"
 
 interface Quiz {
   id: number
@@ -89,17 +88,17 @@ export default function HostGame() {
     <div className="flex min-h-screen flex-col">
       <main className="flex-1 container py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold">Host a Game</h1>
-          <p className="text-muted-foreground">Select a quiz to host a new game</p>
+          <h1 className="text-3xl font-bold">host a game</h1>
+          <p className="text-muted-foreground">select a quiz to host a new game</p>
         </div>
 
         <Tabs defaultValue="public">
           <TabsList className="mb-4">
-            <TabsTrigger value="public">Public Quizzes</TabsTrigger>
-            <TabsTrigger value="your">Your Quizzes</TabsTrigger>
+            <TabsTrigger value="public">public quizzes</TabsTrigger>
+            <TabsTrigger value="your">your quizzes</TabsTrigger>
           </TabsList>
 
-          <Suspense fallback={<div className="animate-pulse">Loading...</div>}>
+          <Suspense fallback={<div className="animate-pulse">loading...</div>}>
             <TabsContent value="public" className="space-y-4">
               {publicQuizzes.length > 0 ? (
                 publicQuizzes.map((quiz) => (
@@ -111,7 +110,7 @@ export default function HostGame() {
                     <CardContent>
                       <div className="flex justify-between items-center">
                         <div className="text-sm text-muted-foreground">{quiz._count.questions} questions</div>
-                        <Button onClick={() => handleHostQuiz(quiz.id)}>Host Game</Button>
+                        <Button onClick={() => handleHostQuiz(quiz.id)}>host game</Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -119,7 +118,7 @@ export default function HostGame() {
               ) : (
                 <Card>
                   <CardContent className="py-8 text-center">
-                    <p className="text-muted-foreground mb-4">No public quizzes available</p>
+                    <p className="text-muted-foreground mb-4">no public quizzes available</p>
                   </CardContent>
                 </Card>
               )}
@@ -137,7 +136,7 @@ export default function HostGame() {
                   <CardContent>
                     <div className="flex justify-between items-center">
                       <div className="text-sm text-muted-foreground">{quiz._count.questions} questions</div>
-                      <Button onClick={() => handleHostQuiz(quiz.id)}>Host Game</Button>
+                      <Button onClick={() => handleHostQuiz(quiz.id)}>host game</Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -145,9 +144,9 @@ export default function HostGame() {
             ) : (
               <Card>
                 <CardContent className="py-8 text-center">
-                  <p className="text-muted-foreground mb-4">You haven't created any quizzes yet</p>
+                  <p className="text-muted-foreground mb-4">you haven't created any quizzes yet</p>
                   <Link href="/create-quiz">
-                    <Button>Create Your First Quiz</Button>
+                    <Button>create Your first quiz</Button>
                   </Link>
                 </CardContent>
               </Card>

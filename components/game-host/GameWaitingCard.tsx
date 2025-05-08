@@ -26,16 +26,16 @@ export function GameWaitingCard({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Game Starting Soon!</CardTitle>
+          <CardTitle>game starting soon!</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="mb-6">
-            The quiz "{quizTitle}" is about to begin with {participantsCount} participants.
-            There are {questionsCount} questions.
+            the quiz "{quizTitle}" is about to begin with {participantsCount} participants.
+            there are {questionsCount} questions.
           </p>
           <div className="flex justify-end">
             <Button onClick={onStartQuestion} size="lg">
-              Start First Question
+              start first question
               <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
@@ -49,15 +49,15 @@ export function GameWaitingCard({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Ready for Next Question</CardTitle>
+          <CardTitle>ready for next question</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="mb-6">
-            Question {currentQuestionIndex + 1} completed. Ready to proceed to question {currentQuestionIndex + 2}.
+            question {currentQuestionIndex + 1} completed. ready to proceed to question {currentQuestionIndex + 2}.
           </p>
           <div className="flex justify-end">
             <Button onClick={onStartQuestion}>
-              Start Next Question
+              start next question
               <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
@@ -70,15 +70,15 @@ export function GameWaitingCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>All Questions Answered!</CardTitle>
+        <CardTitle>all questions answered!</CardTitle>
       </CardHeader>
       <CardContent>
         <p className="mb-6">
-          All {questionsCount} questions have been completed.
+          all {questionsCount} questions have been completed.
         </p>
         <div className="flex justify-end">
           <Button onClick={onEndGame}>
-            Show Final Results
+            show final results
             <ChevronRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
