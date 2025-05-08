@@ -1,3 +1,6 @@
+import { saveBase64Image } from "@/lib/save-image";
+import { getQuizById } from "./getQuizById";
+
 export async function createQuizVersion(
   originalQuizId: number,
   updatedData: {

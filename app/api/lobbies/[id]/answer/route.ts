@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { recordParticipantAnswer } from "@/lib/db";
+import { recordParticipantAnswer } from "@/lib/commands";
 import { getParticipantFromToken } from "@/lib/auth";
 import { pusherServer, CHANNELS, EVENTS } from "@/lib/pusher-service";
 
-export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+export async function POST(
+  req: NextRequest,
+  props: { params: Promise<{ id: string }> }
+) {
   const params = await props.params;
   try {
     // Get the participant token from the authorization header
@@ -11,23 +14,23 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    
+
     const token = authHeader.substring(7);
     const participant = await getParticipantFromToken(token);
-    
+
     if (!participant || participant.lobbyId !== Number(params.id)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    
+
     const { questionId, answerId, timeToAnswer } = await req.json();
-    
+
     if (!questionId || timeToAnswer === undefined) {
       return NextResponse.json(
         { error: "Question ID and time to answer are required" },
         { status: 400 }
       );
     }
-    
+
     // Record the answer
     const participantAnswer = await recordParticipantAnswer(
       participant.id,
@@ -35,7 +38,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
       answerId,
       timeToAnswer
     );
-    
+
     // Notify the host about the submitted answer
     await pusherServer.trigger(
       CHANNELS.lobby(params.id),
@@ -48,10 +51,10 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
         timeToAnswer,
       }
     );
-    
-    return NextResponse.json({ 
+
+    return NextResponse.json({
       success: true,
-      participantAnswer 
+      participantAnswer,
     });
   } catch (error) {
     console.error("Error submitting answer:", error);

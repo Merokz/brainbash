@@ -10,3 +10,4 @@ export * from "./getUserQuizzes";
 export * from "./question/createQuestion";
 export * from "./question/updateQuestion";
 export * from "./updateQuiz";
+export * from "./findQuizById";

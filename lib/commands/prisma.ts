@@ -5,6 +5,9 @@ import { DynamicClientExtensionThis } from "@prisma/client/runtime/library";
 declare global {
   // Allow extended Prisma client (with cache extension) or undefined
   var prisma: PrismaClient;
+  const CACHE_TTL = 60; // 60 seconds TTL for most queries
+  const CACHE_SWR = 300; // 5 minutes SWR
+  const USER_CACHE_TTL = 300; // 5 minutes for user-related queries
 }
 
 // Connection pooling configuration

@@ -1,4 +1,4 @@
-import { findUserById, getParticipantByIdAndLobbyId, prisma } from "./db/";
+import { findUserById, getParticipantByIdAndLobbyId } from "./commands";
 import { compare, hash } from "bcrypt";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
