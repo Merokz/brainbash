@@ -32,6 +32,7 @@ export function Header({ user }: HeaderProps ) {
         method: "POST",
       })
       router.push("/")
+      window.location.reload() // this is easier than updating everthing in the UI.
     } catch (error) {
       console.error("Logout error:", error)
     }

@@ -234,10 +234,8 @@ export function QuizForm({ quiz }: { quiz?: any }) {
           ) : (
             <Card>
               <CardContent className="pt-6 text-center py-8">
-                <p className="text-muted-foreground mb-4">
-                  no questions added yet
-                </p>
-                <Button onClick={addQuestion}>add Your first question</Button>
+                <p className="text-muted-foreground mb-4">no questions added yet</p>
+                <Button onClick={addQuestion}>add your first question</Button>
               </CardContent>
             </Card>
           )}

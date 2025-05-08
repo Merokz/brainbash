@@ -53,6 +53,7 @@ export default function Login() {
       if (response.ok) {
         // Login successful, redirect to home
         router.push("/")
+        window.location.reload() // this is easier than updating everthing in the UI.
       } else {
         const errorData = await response.json()
         setError(errorData.error || "Login failed")

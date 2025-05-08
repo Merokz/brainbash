@@ -9,5 +9,6 @@ export * from "./getQuizVersions";
 export * from "./getUserQuizzes";
 export * from "./question/createQuestion";
 export * from "./question/updateQuestion";
+export * from "./question/getQuestionById";
 export * from "./updateQuiz";
 export * from "./findQuizById";

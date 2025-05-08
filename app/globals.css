@@ -57,3 +57,24 @@
     @apply bg-background text-foreground;
   }
 }
+
+.hover-bounce {
+  transition: transform 0.12s cubic-bezier(.32,-0.16,.33,1.97);
+}
+.hover-bounce:hover {
+  transform: scale(1.1);
+}
+@layer utilities {
+  @keyframes gradient-x {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
+  .animate-gradient-x {
+    animation: gradient-x 4s ease infinite;
+  }
+}

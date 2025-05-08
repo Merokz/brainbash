@@ -18,14 +18,13 @@ interface Question {
   image?: string | null;
   questionType: string;
   answers: Answer[];
-  timeToAnswer: number;
+  timeToAnswer: number; // Time limit for this specific question
 }
 
 interface QuestionInProgressCardProps {
   question: Question;
   questionNumber: number;
   timeLeft: number;
-  timePerQuestion: number; // This could be question.timeToAnswer or a default
   answeredCount: number;
   totalParticipants: number;
   onEndQuestionEarly: () => void;
@@ -35,11 +34,12 @@ export function QuestionInProgressCard({
   question,
   questionNumber,
   timeLeft,
-  timePerQuestion,
   answeredCount,
   totalParticipants,
   onEndQuestionEarly,
 }: QuestionInProgressCardProps) {
+  const timeLimit = question.timeToAnswer; // Use timeToAnswer from the question object
+
   return (
     <Card>
       <CardHeader>
@@ -51,7 +51,7 @@ export function QuestionInProgressCard({
             <div className="text-sm font-medium">time remaining</div>
             <div className="text-sm font-medium">{Math.ceil(timeLeft)}s</div>
           </div>
-          <Progress value={(timeLeft / (question.timeToAnswer || timePerQuestion)) * 100} />
+          <Progress value={timeLimit > 0 ? (timeLeft / timeLimit) * 100 : 0} />
         </div>
 
         <h2 className="text-xl font-semibold mb-2">type: {question.questionType}</h2>

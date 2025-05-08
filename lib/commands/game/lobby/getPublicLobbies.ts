@@ -1,6 +1,7 @@
+"use server";
 import { cacheClient } from "@/lib/cache";
 import { Prisma } from "@prisma/client";
-import { CACHE_TTL } from "../..";
+import { CACHE_TTL } from "../../prisma";
 
 type LobbyPublic = Prisma.LobbyGetPayload<{
   include: {
@@ -42,9 +43,12 @@ export async function getPublicLobbies(): Promise<LobbyPublic[]> {
         },
         include: {
           quiz: {
-            select: {
-              title: true,
-              isPublic: true,
+            include: {
+              questions: {
+                include: {
+                  answers: true,
+                },
+              },
             },
           },
           host: {

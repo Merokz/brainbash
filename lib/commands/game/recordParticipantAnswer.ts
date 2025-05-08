@@ -3,6 +3,7 @@ export async function recordParticipantAnswer(
   questionId: number,
   answerId: number | null,
   timeToAnswer: number,
+  points: number = 0, // Default to 0 if not provided
 ) {
   return prisma.participantAnswer.create({
     data: {
@@ -10,6 +11,7 @@ export async function recordParticipantAnswer(
       questionId,
       answerId,
       timeToAnswer,
+      points,
     },
   });
 }
