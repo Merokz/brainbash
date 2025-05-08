@@ -63,5 +63,5 @@
   transition: transform 0.12s cubic-bezier(.32,-0.16,.33,1.97);
 }
 .hover-bounce:hover {
-  transform: scale(1.3);
+  transform: scale(1.1);
 }
