@@ -13,13 +13,13 @@ import {
 import logoBanner from "@/public/logo.png";
 import Image from "next/image";
 
-interface DashboardHeaderProps {
+interface HeaderProps {
   user: {
     username: string
   } | null
 }
 
-export function DashboardHeader({ user }: DashboardHeaderProps ) {
+export function Header({ user }: HeaderProps ) {
   const router = useRouter()
 
   const handleHistory = async () => {
@@ -50,7 +50,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps ) {
             <>
               <nav className="flex items-center space-x-2">
                 <Link href="/quiz">
-                  <Button variant="ghost">Quizzes</Button>
+                  <Button variant="ghost">quizzes</Button>
                 </Link>
               </nav>
               <DropdownMenu>
@@ -60,21 +60,21 @@ export function DashboardHeader({ user }: DashboardHeaderProps ) {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem>Profile</DropdownMenuItem>
-                  <DropdownMenuItem>Settings</DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleHistory}>History</DropdownMenuItem>
+                  <DropdownMenuItem>profile</DropdownMenuItem>
+                  <DropdownMenuItem>settings</DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleHistory}>history</DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout}>logout</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </>
           ) : (
             <nav className="flex items-center space-x-2">
               <Link href="/login">
-                <Button variant="ghost">Login</Button>
+                <Button variant="ghost">login</Button>
               </Link>
               <Link href="/register">
-                <Button variant="ghost">Register</Button>
+                <Button variant="ghost">register</Button>
               </Link>
             </nav>
           )}

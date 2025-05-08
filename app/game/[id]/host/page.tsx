@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { DashboardHeader } from "@/components/dashboard-header"
 import { getPusherClient, CHANNELS, EVENTS } from "@/lib/pusher-client"
 import { useGameTimer } from "@/hooks/game-timer";
 
@@ -295,10 +294,9 @@ export default function GameHostPage() {
   if (!lobbyData && (gameState === "lobby" || !quiz)) {
      return (
       <div className="flex min-h-screen flex-col">
-        <DashboardHeader user={user} />
         <main className="flex-1 container py-8">
-          <h1 className="text-3xl font-bold mb-4">Lobby or Quiz not found.</h1>
-          <Button onClick={handleReturnToHome}>Return to Home</Button>
+          <h1 className="text-3xl font-bold mb-4">lobby or quiz not found.</h1>
+          <Button onClick={handleReturnToHome}>return to home</Button>
         </main>
       </div>
     );
@@ -307,10 +305,9 @@ export default function GameHostPage() {
   if (!quiz && gameState !== "lobby" && gameState !== "conclusion") { // Allow conclusion if quiz becomes null post-game
     return (
       <div className="flex min-h-screen flex-col">
-        <DashboardHeader user={user} />
         <main className="flex-1 container py-8">
-          <h1 className="text-3xl font-bold mb-4">Quiz data is missing for the current game state.</h1>
-          <Button onClick={handleReturnToHome}>Return to Home</Button>
+          <h1 className="text-3xl font-bold mb-4">quiz data is missing for the current game state.</h1>
+          <Button onClick={handleReturnToHome}>return to home</Button>
         </main>
       </div>
     );
@@ -329,11 +326,11 @@ export default function GameHostPage() {
             <h1 className="text-3xl font-bold">{currentQuizTitle}</h1>
             {gameState !== "lobby" && gameState !== "conclusion" && currentQuestionIndex >= 0 && quiz?.questions && (
               <p className="text-muted-foreground">
-                Question {currentQuestionIndex + 1} of {quiz.questions.length}
+                question {currentQuestionIndex + 1} of {quiz.questions.length}
               </p>
             )}
              {gameState === "lobby" && (
-              <p className="text-muted-foreground">Waiting for participants to join...</p>
+              <p className="text-muted-foreground">waiting for participants to join...</p>
             )}
           </div>
           {gameState === "question" && (

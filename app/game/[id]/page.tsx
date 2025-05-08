@@ -213,7 +213,7 @@ export default function GamePage() {
         {gameState === "waiting" && (
           <Card className="w-full max-w-md">
             <CardContent className="pt-6 text-center py-12">
-              <h2 className="text-2xl font-bold mb-4">Waiting for the next question</h2>
+              <h2 className="text-2xl font-bold mb-4">waiting for the next question</h2>
               <div className="animate-pulse flex justify-center">
                 <div className="h-4 w-4 bg-primary rounded-full mx-1"></div>
                 <div className="h-4 w-4 bg-primary rounded-full mx-1 animate-pulse delay-150"></div>
@@ -228,7 +228,7 @@ export default function GamePage() {
             <CardContent className="pt-6">
               <div className="mb-4">
                 <div className="flex justify-between items-center mb-2">
-                  <div className="text-sm font-medium">Time remaining</div>
+                  <div className="text-sm font-medium">time remaining</div>
                   <div className="text-sm font-medium">{timeLeft}s</div>
                 </div>
                 <Progress value={(timeLeft / initialTimeToAnswer) * 100} />
@@ -308,12 +308,12 @@ export default function GamePage() {
           <Card className="w-full max-w-md">
             <CardContent className="pt-6 text-center py-8">
               <div className="text-2xl font-bold mb-4">
-                Question Ended
+                question ended
               </div>
               
               {results.correctAnswers && (
                 <div className="mb-4">
-                  The correct answer was: 
+                  the correct answer was: 
                   <span className="font-bold block mt-2">
                     {results.correctAnswers.map((a: any) => a.answerText).join(", ")}
                   </span>
@@ -332,21 +332,21 @@ export default function GamePage() {
         {gameState === "conclusion" && conclusion && (
           <Card className="w-full max-w-md">
             <CardContent className="pt-6 text-center py-8">
-              <h2 className="text-2xl font-bold mb-6">Game Conclusion</h2>
+              <h2 className="text-2xl font-bold mb-6">game conclusion</h2>
               
               <div className="mb-6">
                 <div className="text-lg">
-                  Your Rank:{" "}
+                  your rank:{" "}
                   <span className="font-bold">
                     {conclusion.rank}/{conclusion.totalParticipants}
                   </span>
                 </div>
                 <div className="text-lg">
-                  Your Score: <span className="font-bold">{conclusion.score}</span>
+                  your score: <span className="font-bold">{conclusion.score}</span>
                 </div>
               </div>
 
-              <h3 className="text-xl font-bold mb-4">Top Players</h3>
+              <h3 className="text-xl font-bold mb-4">top players</h3>
               <div className="space-y-2">
                 {conclusion.topPlayers.map((player: any, index: number) => (
                   <div
@@ -362,7 +362,7 @@ export default function GamePage() {
               </div>
 
               <Button className="mt-8 w-full" onClick={() => router.push("/")}>
-                Return to Home
+                return to home
               </Button>
             </CardContent>
           </Card>

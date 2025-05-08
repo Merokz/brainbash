@@ -145,7 +145,7 @@ export function QuizForm({ quiz }: { quiz?: any }) {
 
       if (response.ok) {
         const data = await response.json()
-        router.push("/dashboard")
+        router.push("/")
       } else {
         const errorData = await response.json()
         setError(errorData.error || "Failed to save quiz")
@@ -162,8 +162,8 @@ export function QuizForm({ quiz }: { quiz?: any }) {
     <div className="space-y-8">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
-          <TabsTrigger value="details">Quiz Details</TabsTrigger>
-          <TabsTrigger value="questions">Questions</TabsTrigger>
+          <TabsTrigger value="details">quiz details</TabsTrigger>
+          <TabsTrigger value="questions">questions</TabsTrigger>
         </TabsList>
 
         <TabsContent value="details" className="space-y-4 pt-4">
@@ -171,36 +171,36 @@ export function QuizForm({ quiz }: { quiz?: any }) {
             <CardContent className="pt-6">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Quiz Title</Label>
+                  <Label htmlFor="title">quiz title</Label>
                   <Input
                     id="title"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Enter quiz title"
+                    placeholder="enter quiz title"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description (Optional)</Label>
+                  <Label htmlFor="description">description (optional)</Label>
                   <Textarea
                     id="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Enter quiz description"
+                    placeholder="enter quiz description"
                     rows={4}
                   />
                 </div>
 
                 <div className="flex items-center space-x-2">
                   <Switch id="public" checked={isPublic} onCheckedChange={setIsPublic} />
-                  <Label htmlFor="public">Make this quiz public</Label>
+                  <Label htmlFor="public">make this quiz public</Label>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <div className="flex justify-end">
-            <Button onClick={() => setActiveTab("questions")}>Next: Add Questions</Button>
+            <Button onClick={() => setActiveTab("questions")}>next: add questions</Button>
           </div>
         </TabsContent>
 
@@ -218,8 +218,8 @@ export function QuizForm({ quiz }: { quiz?: any }) {
           ) : (
             <Card>
               <CardContent className="pt-6 text-center py-8">
-                <p className="text-muted-foreground mb-4">No questions added yet</p>
-                <Button onClick={addQuestion}>Add Your First Question</Button>
+                <p className="text-muted-foreground mb-4">no questions added yet</p>
+                <Button onClick={addQuestion}>add Your first question</Button>
               </CardContent>
             </Card>
           )}
@@ -227,11 +227,11 @@ export function QuizForm({ quiz }: { quiz?: any }) {
           {/* Show add button only if under the limit */}
           {questions.length < 8 ? (
             <Button variant="outline" onClick={addQuestion} className="w-full py-8">
-              + Add Another Question ({questions.length}/8)
+              + add another question ({questions.length}/8)
             </Button>
           ) : (
             <p className="text-center text-amber-600 py-2">
-              Maximum of 8 questions reached
+              maximum of 8 questions reached
             </p>
           )}
 
@@ -239,11 +239,11 @@ export function QuizForm({ quiz }: { quiz?: any }) {
           
           <div className="flex justify-between">
             <Button variant="outline" onClick={() => setActiveTab("details")}>
-              Back to Details
+              back to details
             </Button>
 
             <Button onClick={handleSubmit} disabled={saving}>
-              {saving ? "Saving..." : quiz?.id ? "Update Quiz" : "Create Quiz"}
+              {saving ? "saving..." : quiz?.id ? "update quiz" : "create quiz"}
             </Button>
           </div>
         </TabsContent>

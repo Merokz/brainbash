@@ -59,8 +59,8 @@ export default function Register() {
       })
 
       if (response.ok) {
-        // Registration successful, redirect to dashboard
-        router.push("/dashboard")
+        // Registration successful, redirect to home
+        router.push("/")
       } else {
         const errorData = await response.json()
         setError(errorData.error || "Registration failed")

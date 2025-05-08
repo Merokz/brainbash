@@ -151,7 +151,7 @@ export function QuestionForm({ question, index, onChange, onRemove }: QuestionFo
     <Card className="border-2 relative">
       <div className="absolute top-2 right-2 flex items-center gap-2">
         <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
-          Question {index + 1}/8
+          question {index + 1}/8
         </span>
         <Button variant="ghost" size="icon" onClick={onRemove} className="h-8 w-8">
           <X className="h-4 w-4" />
@@ -159,23 +159,23 @@ export function QuestionForm({ question, index, onChange, onRemove }: QuestionFo
       </div>
       
       <CardHeader className="pt-8">
-        <CardTitle>Question {index + 1}</CardTitle>
+        <CardTitle>question {index + 1}</CardTitle>
       </CardHeader>
       
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor={`question-${index}`}>Question Text</Label>
+          <Label htmlFor={`question-${index}`}>question text</Label>
           <Textarea
             id={`question-${index}`}
             value={question.questionText}
             onChange={handleQuestionTextChange}
-            placeholder="Enter your question"
+            placeholder="enter your question"
             rows={2}
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor={`question-image-${index}`}>Upload Image</Label>
+          <Label htmlFor={`question-image-${index}`}>upload image</Label>
           <Input
             id={`question-image-${index}`}
             type="file"
@@ -192,34 +192,34 @@ export function QuestionForm({ question, index, onChange, onRemove }: QuestionFo
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor={`question-type-${index}`}>Question Type</Label>
+          <Label htmlFor={`question-type-${index}`}>question type</Label>
           <Select value={question.questionType} onValueChange={handleQuestionTypeChange}>
             <SelectTrigger id={`question-type-${index}`}>
               <SelectValue placeholder="Select question type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="MULTIPLE_CHOICE">Multiple Choice</SelectItem>
-              <SelectItem value="SINGLE_CHOICE">Single Choice</SelectItem>
-              <SelectItem value="TRUE_FALSE">True/False</SelectItem>
-              <SelectItem value="OPEN_ENDED">Open Ended</SelectItem>
+              <SelectItem value="MULTIPLE_CHOICE">multiple choice</SelectItem>
+              <SelectItem value="SINGLE_CHOICE">single choice</SelectItem>
+              <SelectItem value="TRUE_FALSE">true/false</SelectItem>
+              <SelectItem value="OPEN_ENDED">open ended</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div className="space-y-2">
-          <Label>Answers</Label>
+          <Label>answers</Label>
 
           {question.questionType === "OPEN_ENDED" ? (
             <div className="p-4 border rounded-md">
               <p className="text-sm text-muted-foreground">
-                For open-ended questions, participants will provide their own text answer. Enter the correct answer text
+                for open-ended questions, participants will provide their own text answer. enter the correct answer text
                 below:
               </p>
               <Input
                 className="mt-2"
                 value={question.answers[0]?.answerText || ""}
                 onChange={(e) => handleAnswerTextChange(0, e.target.value)}
-                placeholder="Correct answer"
+                placeholder="correct answer"
               />
             </div>
           ) : question.questionType === "TRUE_FALSE" ? (
@@ -254,7 +254,7 @@ export function QuestionForm({ question, index, onChange, onRemove }: QuestionFo
                   <Input
                     value={answer.answerText}
                     onChange={(e) => handleAnswerTextChange(i, e.target.value)}
-                    placeholder={`Answer ${i + 1}`}
+                    placeholder={`answer ${i + 1}`}
                     className="flex-1"
                   />
                   <Button
@@ -269,7 +269,7 @@ export function QuestionForm({ question, index, onChange, onRemove }: QuestionFo
                 </div>
               ))}
               <Button variant="outline" onClick={addAnswer} className="w-full" size="sm">
-                + Add Answer
+                + add answer
               </Button>
             </div>
           ) : (
@@ -299,7 +299,7 @@ export function QuestionForm({ question, index, onChange, onRemove }: QuestionFo
                 </div>
               ))}
               <Button variant="outline" onClick={addAnswer} className="w-full" size="sm">
-                + Add Answer
+                + add answer
               </Button>
             </div>
           )}

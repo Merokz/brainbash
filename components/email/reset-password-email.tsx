@@ -15,15 +15,15 @@ export const ResetPasswordEmail: React.FC<ResetPasswordEmailProps> = ({ email, r
   <Layout>
     <Header />
     <Text style={{ color: theme.colors.text, textAlign: "center" }}>
-      We received a request to reset the password associated with <strong>{email}</strong>.
+      we received a request to reset the password associated with <strong>{email}</strong>.
     </Text>
 
     <div style={{ textAlign: "center", marginTop: "20px" }}>
-      <PrimaryButton href={resetLink}>Reset Your Password</PrimaryButton>
+      <PrimaryButton href={resetLink}>reset your password</PrimaryButton>
     </div>
 
     <Text style={{ color: theme.colors.muted, textAlign: "center" }}>
-      If you did not request this, you can safely ignore this email.
+      if you did not request this, you can safely ignore this email.
     </Text>
     <Footer />
   </Layout>
