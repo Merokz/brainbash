@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { endGame, getGameResults } from "@/lib/db";
+import { endGame, getGameResults } from "@/lib/commands";
 import { getUserFromToken } from "@/lib/auth";
 import { pusherServer, CHANNELS, EVENTS } from "@/lib/pusher-service";
 
-export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+export async function POST(
+  req: NextRequest,
+  props: { params: Promise<{ id: string }> }
+) {
   const params = await props.params;
   try {
     const user = await getUserFromToken();
@@ -12,46 +15,43 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
     }
 
     const lobbyId = Number(params.id);
-    
+
     // End the game in the database
     const updatedLobby = await endGame(lobbyId);
-    
+
     // Get the final results
     const results = await getGameResults(lobbyId);
-    
+
     // Notify all participants that the game has ended
     await pusherServer.trigger(
       CHANNELS.game(lobbyId.toString()),
       EVENTS.GAME_ENDED,
       {
-        results: results.map(p => ({
+        results: results.map((p) => ({
           id: p.id,
           username: p.username,
           score: p.score,
-        }))
+        })),
       }
     );
-    
+
     // Send detailed results to the host
     await pusherServer.trigger(
       CHANNELS.lobby(lobbyId.toString()),
       EVENTS.GAME_ENDED,
       {
         results: results,
-        hostView: true
+        hostView: true,
       }
     );
-    
-    return NextResponse.json({ 
+
+    return NextResponse.json({
       success: true,
       message: "Game ended successfully",
-      results 
+      results,
     });
   } catch (error) {
     console.error("Error ending game:", error);
-    return NextResponse.json(
-      { error: "Failed to end game" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to end game" }, { status: 500 });
   }
 }

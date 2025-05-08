@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getLobbyById, getQuestionById, recordParticipantAnswer } from "@/lib/db";
+import { getLobbyById, getQuestionById,recordParticipantAnswer } from "@/lib/db";
 import { getParticipantFromToken } from "@/lib/auth";
 import { pusherServer, CHANNELS, EVENTS } from "@/lib/pusher-service";
 import { calculatePoints } from "@/lib/game";
 
 
-export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+export async function POST(
+  req: NextRequest,
+  props: { params: Promise<{ id: string }> }
+) {
   const params = await props.params;
   try {
     // Get the participant token from the authorization header
@@ -13,10 +16,10 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    
+
     const token = authHeader.substring(7);
     const participant = await getParticipantFromToken(token);
-    
+
     if (!participant || participant.lobbyId !== Number(params.id)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -59,7 +62,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
       timeTaken,
       points // Pass calculated points
     );
-    
+
     // Notify the host about the submitted answer
     await pusherServer.trigger(
       CHANNELS.lobby(params.id),
@@ -73,10 +76,10 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
         pointsAwarded: points, // Optionally send points to host
       }
     );
-    
-    return NextResponse.json({ 
+
+    return NextResponse.json({
       success: true,
-      participantAnswer 
+      participantAnswer,
     });
   } catch (error) {
     console.error("Error submitting answer:", error);

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createLobby, getPublicLobbies } from "@/lib/db";
+import { createLobby, getPublicLobbies } from "@/lib/commands";
 import { getUserFromToken } from "@/lib/auth";
 import { pusherServer, CHANNELS, EVENTS } from "@/lib/pusher-service";
 
@@ -13,7 +13,10 @@ export async function POST(req: NextRequest) {
     const { quizId, isPublic } = await req.json();
 
     if (!quizId) {
-      return NextResponse.json({ error: "Quiz ID is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Quiz ID is required" },
+        { status: 400 }
+      );
     }
 
     const lobby = await createLobby(Number(quizId), user.id, Boolean(isPublic));
@@ -46,7 +49,10 @@ export async function GET() {
   try {
     const lobbies = await getPublicLobbies();
     if (!lobbies) {
-      return NextResponse.json({ error: "No public lobbies found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "No public lobbies found" },
+        { status: 404 }
+      );
     }
     return NextResponse.json(lobbies);
   } catch (error) {
