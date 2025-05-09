@@ -71,7 +71,7 @@ export default function HostGame() {
 
       if (response.ok) {
         const data = await response.json()
-        router.push(`/lobby/${data.id}`)
+        router.push(`/game/${data.id}/host`)
       } else {
         console.error("Failed to create lobby")
       }
