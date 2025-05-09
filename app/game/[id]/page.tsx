@@ -45,7 +45,6 @@ export default function GamePage() {
   const [gameState, setGameState] = useState<"waiting" | "question" | "results" | "conclusion">("waiting");
   
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
-  // const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0); // Not directly used in client UI logic now
   const [initialTimeToAnswer, setInitialTimeToAnswer] = useState(30);
   
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>([]);
@@ -58,6 +57,11 @@ export default function GamePage() {
   const [serverStartTime, setServerStartTime] = useState<string | null>(null);
   const timeLeft = useGameTimer(serverStartTime, initialTimeToAnswer);
 
+  const [hostDisconnected, setHostDisconnected] = useState(false);
+  const [hostMemberId, setHostMemberId] = useState<string | null>(null);
+  const [hostDisconnectTimer, setHostDisconnectTimer] = useState<NodeJS.Timeout | null>(null);
+
+
   useEffect(() => {
     const storedToken = localStorage.getItem("participant_token");
     const storedLobbyId = localStorage.getItem("lobby_id");
@@ -69,9 +73,63 @@ export default function GamePage() {
     setToken(storedToken);
 
     const pusherClient = getPusherClient();
+    const lobbyChannelName = CHANNELS.lobby(params.id);
     const gameChannelName = CHANNELS.game(params.id);
+    
+    const lobbyChannel = pusherClient.subscribe(lobbyChannelName);
     const gameChannel = pusherClient.subscribe(gameChannelName);
     
+    lobbyChannel.bind('pusher:subscription_succeeded', (members: any) => {
+      console.log('Participant: Subscribed to presence lobby channel. Members:', members.members);
+      let foundHost = false;
+      members.each((member: { id: string; info: { isHost?: boolean } }) => {
+        if (member.info.isHost) {
+          console.log('Participant: Host found on subscription:', member.id);
+          setHostMemberId(member.id);
+          setHostDisconnected(false);
+          if (hostDisconnectTimer) clearTimeout(hostDisconnectTimer);
+          foundHost = true;
+        }
+      });
+      if (!foundHost) {
+        console.warn('Participant: Host not found in presence channel on initial subscription.');
+        // Consider if game should proceed or wait for host. For now, we assume host might connect.
+        // If a host was previously detected and is now gone, this path might also be hit if participant resubscribes.
+        if (hostMemberId) { // If we were tracking a host and they are not in the list anymore
+             console.log('Participant: Previously tracked host is no longer present on subscription.');
+             setHostDisconnected(true);
+             // Optionally start a timer here too
+        }
+      }
+    });
+    
+    lobbyChannel.bind('pusher:member_added', (member: { id: string; info: { isHost?: boolean, name: string } }) => {
+      console.log('Participant: Member added to lobby:', member.id, member.info);
+      if (member.info.isHost) {
+        console.log('Participant: Host joined/rejoined:', member.id);
+        setHostMemberId(member.id);
+        setHostDisconnected(false);
+        if (hostDisconnectTimer) {
+          clearTimeout(hostDisconnectTimer);
+          setHostDisconnectTimer(null);
+        }
+      }
+    });
+    
+    lobbyChannel.bind('pusher:member_removed', (member: { id: string; info: { isHost?: boolean, name: string } }) => {
+      console.log('Participant: Member removed from lobby:', member.id, member.info);
+      if (member.id === hostMemberId) {
+        console.log('Participant: Tracked host disconnected:', member.id);
+        setHostDisconnected(true);
+        // Optional: Start a timer to automatically leave or show a permanent message
+        const timer = setTimeout(() => {
+          console.log("Participant: Host disconnection timeout reached. Consider redirecting or showing permanent message.");
+          // Example: router.push("/?error=host_disconnected");
+        }, 60000); // 60 seconds timeout
+        setHostDisconnectTimer(timer);
+      }
+    });
+
     gameChannel.bind(EVENTS.GAME_STARTED, (data: any) => {
       // Quiz data not directly used by client beyond knowing game started
       // Client waits for QUESTION_STARTED
@@ -113,11 +171,17 @@ export default function GamePage() {
     });
     
     return () => {
+      pusherClient.unsubscribe(lobbyChannelName); // Unsubscribe from lobby channel
       pusherClient.unsubscribe(gameChannelName);
-      // Potentially unbind specific events if needed, though unsubscribe usually handles it.
-      gameChannel.unbind_all();
+      if (hostDisconnectTimer) {
+        clearTimeout(hostDisconnectTimer);
+      }
+      // It's good practice to unbind specific event handlers if they cause issues,
+      // though Pusher's unsubscribe usually handles channel-specific binds.
+      // lobbyChannel.unbind_all();
+      // gameChannel.unbind_all();
     };
-  }, [params.id, router]);
+  }, [params.id, router, hostMemberId, hostDisconnectTimer]); // Added hostMemberId and hostDisconnectTimer
 
   const submitAnswerToServer = useCallback(async (answerPayload: any) => {
     if (!token || !currentQuestion) return;
@@ -190,9 +254,16 @@ export default function GamePage() {
     }
   }, [timeLeft, gameState, submittedAnswer, handleTimedOut]);
 
+  const hostDisconnectedBanner = hostDisconnected && (
+    <div className="fixed top-0 left-0 right-0 bg-yellow-500 border-b border-yellow-700 text-black p-3 text-center z-50 shadow-lg">
+      Host has disconnected. Waiting for reconnection...
+      {/* You could add a countdown here if you refine the timer logic */}
+    </div>
+  );
 
   return (
-    <div className="flex min-h-screen flex-col bg-muted p-4">
+    <div className="flex min-h-screen flex-col bg-muted p-4 pt-16"> {/* Added pt-16 if banner is fixed */}
+      {hostDisconnectedBanner}
       <div className="flex-1 flex items-center justify-center">
         {gameState === "waiting" && <GameWaitingScreen />}
 
