@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import logoBanner from "@/public/logo.png";
 import Image from "next/image";
+import Avatar from "boring-avatars";
 
 interface HeaderProps {
   user: {
@@ -74,6 +75,8 @@ export function Header({ user }: HeaderProps ) {
                   <DropdownMenuItem onClick={handleLogout}>logout</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+              <Avatar name={user.username} colors={["#152e57", "#11235d", "#660e44", "#aa0600", "#e06800"]} variant="beam"  size={40}/>
+
             </>
           ) : (
             <nav className="flex items-center space-x-2">

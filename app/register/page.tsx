@@ -80,69 +80,69 @@ export default function Register() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 flex flex-col items-center">
           <Image src={logo} alt="Logo" width={250} height={250} />
-          <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
-          <CardDescription>Enter your information to create a host account</CardDescription>
+          <CardTitle className="text-2xl font-bold">create an account</CardTitle>
+          <CardDescription>enter your information to create a host account</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username">username</Label>
               <Input
                 id="username"
                 name="username"
                 value={formData.username}
                 onChange={handleChange}
-                placeholder="Enter your username"
+                placeholder="enter your username"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">email</Label>
               <Input
                 id="email"
                 name="email"
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="Enter your email"
+                placeholder="enter your email"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">password</Label>
               <Input
                 id="password"
                 name="password"
                 type="password"
                 value={formData.password}
                 onChange={handleChange}
-                placeholder="Enter your password"
+                placeholder="enter your password"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label htmlFor="confirmPassword">confirm password</Label>
               <Input
                 id="confirmPassword"
                 name="confirmPassword"
                 type="password"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                placeholder="Confirm your password"
+                placeholder="confirm your password"
                 required
               />
             </div>
             {error && <div className="text-sm text-red-500">{error}</div>}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Creating account..." : "Create account"}
+              {loading ? "creating account..." : "create account"}
             </Button>
           </form>
         </CardContent>
         <CardFooter className="flex justify-center">
           <div className="text-sm text-muted-foreground">
-            Already have an account?{" "}
-            <Link href="/login" className="text-primary hover:underline">
-              Login
+            already have an account?  
+            <Link href="/login" className="text-primary hover:underline ml-2">
+              login
             </Link>
           </div>
         </CardFooter>

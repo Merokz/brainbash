@@ -1,8 +1,8 @@
 export const theme = {
     brand: {
-      name: "BrainBash",
+      name: "yuno",
       url: "example.com",
-      logo: "https://i.imgur.com/zBjVDup.png",
+      logo: "https://i.imgur.com/MzVP8Ie.png",
     },
     colors: {
       primary: "#4F46E5",

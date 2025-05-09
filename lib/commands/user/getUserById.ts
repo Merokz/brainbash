@@ -1,4 +1,4 @@
-export async function findUserById(userId: number) {
+export async function getUserById(userId: number) {
   return prisma.user.findUnique({
     where: {
       id: userId,

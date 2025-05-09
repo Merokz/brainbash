@@ -126,7 +126,7 @@ export function QuizForm({ quiz }: { quiz?: any }) {
         isPublic,
         questions,
       }));
-      const endpoint = quiz?.id ? `/api/quizzes/${quiz.id}` : "/api/quizzes/create"
+      const endpoint = quiz?.id ? `/api/quizzes/edit/${quiz.id}` : "/api/quizzes/create"
 
       const method = quiz?.id ? "PUT" : "POST"
 

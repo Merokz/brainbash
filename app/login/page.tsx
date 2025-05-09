@@ -72,51 +72,51 @@ export default function Login() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 flex flex-col items-center">
           <Image src={logo} alt="Logo" width={250} height={250} />
-          <CardTitle className="text-2xl font-bold">Login</CardTitle>
-          <CardDescription>Enter your credentials to access your account</CardDescription>
+          <CardTitle className="text-2xl font-bold">login</CardTitle>
+          <CardDescription>enter your credentials to access your account</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username or Email</Label>
+              <Label htmlFor="username">username or email</Label>
               <Input
                 id="username"
                 name="username"
                 value={formData.username}
                 onChange={handleChange}
-                placeholder="Enter your username or email"
+                placeholder="enter your username or email"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">password</Label>
               <Input
                 id="password"
                 name="password"
                 type="password"
                 value={formData.password}
                 onChange={handleChange}
-                placeholder="Enter your password"
+                placeholder="enter your password"
                 required
               />
             </div>
             {error && <div className="text-sm text-red-500">{error}</div>}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Logging in..." : "Login"}
+              {loading ? "logging in..." : "login"}
             </Button>
           </form>
         </CardContent>
         <CardFooter className="flex flex-col items-center gap-2 text-sm text-muted-foreground">
           <div>
-            Forgot your password?{" "}
-            <Link href="/forgot-password" className="text-primary hover:underline">
-              Reset it here
+            forgot your password?
+            <Link href="/forgot-password" className="text-primary hover:underline ml-2">
+              reset it here
             </Link>
           </div>
           <div>
-            Don&apos;t have an account?{" "}
-            <Link href="/register" className="text-primary hover:underline">
-              Sign up
+            don&apos;t have an account?
+            <Link href="/register" className="text-primary hover:underline ml-2">
+              sign up
             </Link>
           </div>
         </CardFooter>

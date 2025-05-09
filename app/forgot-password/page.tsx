@@ -27,9 +27,9 @@ export default function ForgotPassword() {
       return;
     }
   
-    setLoading(true);
-    setError("");
-    setSuccess("");
+    setLoading(true)
+    setError("")
+    setSuccess("")
   
     try {
       const response = await fetch("/api/auth/forgot-password", {

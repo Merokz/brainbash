@@ -9,7 +9,7 @@ export async function updateQuiz(
     data: {
       title,
       description,
-      isPublic,
-    },
-  });
+      isPublic
+    }
+  })
 }

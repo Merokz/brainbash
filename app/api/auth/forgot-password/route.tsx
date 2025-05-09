@@ -6,9 +6,9 @@ import jwt from "jsonwebtoken";
 
 export async function POST(request: Request) {
   try {
-    const { email } = await request.json();
-
-    const JWT_SECRET = process.env.JWT_SECRET!; 
+    const { email } = await request.json()
+    console.log('email:', email)
+    const JWT_SECRET = process.env.JWT_SECRET!
 
     const token = jwt.sign(
       {
@@ -17,7 +17,7 @@ export async function POST(request: Request) {
       },
       JWT_SECRET,
       { expiresIn: "15m" }
-    );
+    )
     
     const resetLink = `${process.env.BASE_URL}/reset-password?token=${token}`;
     const html = await render(<ResetPasswordEmail email={email} resetLink={resetLink} />)
@@ -29,21 +29,23 @@ export async function POST(request: Request) {
         user: 'blockwochentimmy@gmail.com',
         pass: 'gbkfksxdtgjrwmvo',
       },
-    });
+    })
+
+    console.log('email:', email,'resetlink: ', resetLink)
 
     const info = await transporter.sendMail({
-      from: "BrainBash <blockwochentimmy@gmail.com>",
+      from: "yuno <blockwochentimmy@gmail.com>",
       to: email,
-      subject: "Reset your BrainBash Password",
+      subject: "reset your yuno password",
       html
-    });
+    })
 
-    return NextResponse.json({ message: "Email sent", info });
+    return NextResponse.json({ message: "Email sent", info })
   } catch (error: any) {
-    console.error("Error sending email:", error);
+    console.error("Error sending email:", error)
     return NextResponse.json(
       { error: "Failed to send email", detail: error.message },
       { status: 500 }
-    );
+    )
   }
 }

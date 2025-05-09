@@ -1,11 +1,10 @@
 import type React from "react"
 import "./globals.css"
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
 import { Poppins } from 'next/font/google'
-import Providers from "@/components/providers";
-import { Header } from "@/components/header";
-import { getUserFromToken } from "@/lib/auth";
+import Providers from "@/components/providers"
+import { Header } from "@/components/header"
+import { getUserFromToken } from "@/lib/auth"
 
 //const inter = Inter({ subsets: ["latin"] })
 const poppins = Poppins({
@@ -15,8 +14,8 @@ const poppins = Poppins({
 
 
 export const metadata: Metadata = {
-  title: "BrainBash - Real-Time Quiz App",
-  description: "Create and participate in interactive quiz games in real-time",
+  title: "yuno - real-time quiz app",
+  description: "create and participate in interactive quiz games in real-time",
     generator: 'v0.dev'
 }
 
@@ -25,7 +24,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const user = await getUserFromToken();
+  const user = await getUserFromToken()
   return (
     <html lang="en">
       <body className={poppins.className} suppressHydrationWarning={true}>
