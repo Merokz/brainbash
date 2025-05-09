@@ -13,8 +13,6 @@ export const pusherServer = new Pusher({
 export const EVENTS = {
   // Lobby events
   LOBBY_UPDATED: "lobby-updated",
-  PARTICIPANT_JOINED: "participant-joined",
-  PARTICIPANT_LEFT: "participant-left",
   
   // Game events
   GAME_STARTED: "game-started",
@@ -23,8 +21,6 @@ export const EVENTS = {
   ANSWER_SUBMITTED: "answer-submitted",
   GAME_ENDED: "game-ended",
   
-  // Host events
-  HOST_DISCONNECTED: "host-disconnected"
 };
 
 // Channel names - functions to generate consistent channel names

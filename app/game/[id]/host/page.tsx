@@ -179,11 +179,11 @@ export default function GameHostPage() {
       setParticipantAnswers([]); // Clear answers for new question
     });
 
-    // Add HOST_DISCONNECTED for potential cleanup or UI update
-    lobbyChannel.bind(EVENTS.HOST_DISCONNECTED, () => {
-      // Handle host disconnection if necessary, e.g., show a message
-      console.log("Host disconnected event received");
-    });
+    // // Add HOST_DISCONNECTED for potential cleanup or UI update
+    // lobbyChannel.bind(EVENTS.HOST_DISCONNECTED, () => {
+    //   // Handle host disconnection if necessary, e.g., show a message
+    //   console.log("Host disconnected event received");
+    // });
 
 
     return () => {
