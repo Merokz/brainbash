@@ -4,11 +4,12 @@ import { getUserById } from "@/lib/commands";
 
 export async function PUT(
   request: Request,
-  props: { params: Promise<{ id: number }> }
+  props: { params: Promise<{ id: string }> }
 ) {
   const params = await props.params;
   try {
-    const user = await getUserById(params.id);
+    console.log(params)
+    const user = await getUserById(parseInt(params.id));
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

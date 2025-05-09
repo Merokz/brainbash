@@ -1,4 +1,4 @@
-import { findUserById, getParticipantByIdAndLobbyId } from "./commands";
+import { getUserById, getParticipantByIdAndLobbyId } from "./commands";
 import { compare, hash } from "bcrypt";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
@@ -69,7 +69,7 @@ export async function getUserFromToken(): Promise<any> {
       return null;
     }
 
-    const user = await findUserById(payload.userId);
+    const user = await getUserById(payload.userId);
     if (!user) {
       // User ID from token not found in DB
       return null;

@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import ProfileDropdown from "@/components/profile-dropdown"
 import logoBanner from "@/public/logo.png";
 import Image from "next/image";
 import Avatar from "boring-avatars";
@@ -63,9 +64,14 @@ export function Header({ user }: HeaderProps ) {
               </nav>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="ml-2">
-                    {user.username}
-                  </Button>
+                  <div className="rounded-full transition-transform duration-200 hover:scale-105 hover:ring-2 hover:ring-primary cursor-pointer">
+                    <Avatar
+                      name={user.username}
+                      colors={["#152e57", "#11235d", "#660e44", "#aa0600", "#e06800"]}
+                      variant="beam"
+                      size={40}
+                    />
+                  </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={handleProfile}>profile</DropdownMenuItem>
@@ -75,7 +81,7 @@ export function Header({ user }: HeaderProps ) {
                   <DropdownMenuItem onClick={handleLogout}>logout</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Avatar name={user.username} colors={["#152e57", "#11235d", "#660e44", "#aa0600", "#e06800"]} variant="beam"  size={40}/>
+              
 
             </>
           ) : (
