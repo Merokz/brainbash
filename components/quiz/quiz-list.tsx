@@ -15,6 +15,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { showToast } from "@/lib/sonner"
 
 interface Quiz {
   id: number
@@ -46,6 +47,7 @@ export function QuizList({ quizzes }: QuizListProps) {
 
       if (response.ok) {
         // Refresh the page to update the quiz list
+        showToast("quiz deleted successfully", true)
         router.refresh()
       } else {
         console.error("Failed to delete quiz")

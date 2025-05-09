@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import logo from "@/public/logo.png";
 import Image from "next/image";
+import { showToast } from "@/lib/sonner"
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -18,7 +19,6 @@ export default function Login() {
     password: "",
   })
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
   const router = useRouter()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -31,13 +31,11 @@ export default function Login() {
 
     // Validate form
     if (!formData.username || !formData.password) {
-      setError("All fields are required")
+      showToast("all fields are required", false)
       return
     }
 
     setLoading(true)
-    setError("")
-
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
@@ -57,11 +55,10 @@ export default function Login() {
         });
       } else {
         const errorData = await response.json()
-        setError(errorData.error || "Login failed")
+        showToast("login failed", false)
       }
     } catch (error) {
-      console.error("Login error:", error)
-      setError("An error occurred during login")
+      showToast("an error occurred during login", false)
     } finally {
       setLoading(false)
     }
@@ -100,7 +97,6 @@ export default function Login() {
                 required
               />
             </div>
-            {error && <div className="text-sm text-red-500">{error}</div>}
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "logging in..." : "login"}
             </Button>

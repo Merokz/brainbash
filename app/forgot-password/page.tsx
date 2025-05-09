@@ -11,25 +11,22 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Image from "next/image"
 import logo from "@/public/logo.png"
+import { showToast } from "@/lib/sonner"
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
-  const [success, setSuccess] = useState("")
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
   
     if (!email) {
-      setError("Email is required");
+      showToast("email is required!", false)
       return;
     }
   
     setLoading(true)
-    setError("")
-    setSuccess("")
   
     try {
       const response = await fetch("/api/auth/forgot-password", {
@@ -41,14 +38,13 @@ export default function ForgotPassword() {
       });
   
       if (response.ok) {
-        setSuccess("If this email exists, we've sent instructions to reset your password.");
+        showToast("if this email exists, we've sent instructions to reset your password.", true)
       } else {
-        const errorData = await response.json();
-        setError(errorData.error || "Something went wrong");
+        showToast("something went wrong.", false)
       }
     } catch (error) {
       console.error("Forgot password error:", error);
-      setError("An unexpected error occurred");
+      showToast("an unexpected error occurred", false);
     } finally {
       setLoading(false);
     }
@@ -77,8 +73,6 @@ export default function ForgotPassword() {
                 required
               />
             </div>
-            {error && <div className="text-sm text-red-500">{error}</div>}
-            {success && <div className="text-sm text-green-500">{success}</div>}
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Sending..." : "Send Reset Link"}
             </Button>
