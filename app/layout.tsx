@@ -29,7 +29,7 @@ export default async function RootLayout({
   const theme = cookieStore.get("theme")?.value // Get the theme value
   return (
     <html lang="en" className={theme === "dark" ? "dark" : ""}>
-      <body className={poppins.className} suppressHydrationWarning={true}>
+      <body className={`${poppins.className} header-scroll-behind-rule`} suppressHydrationWarning={true}>
         <Providers>
           <Header user={user} />
           {children} 
