@@ -47,7 +47,7 @@ export function Header({ user }: HeaderProps ) {
   }
 
   return (
-    <header className="fixed top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/50">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/50">
       <div className="container flex h-14 items-center">
         <div className="mr-4 flex">
           <Link href="/" className="flex items-center space-x-2">
@@ -62,7 +62,7 @@ export function Header({ user }: HeaderProps ) {
                   <Button variant="ghost">quizzes</Button>
                 </Link>
               </nav>
-              <DropdownMenu>
+              <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
                   <div className="rounded-full transition-transform duration-200 hover:scale-105 hover:ring-2 hover:ring-primary cursor-pointer">
                     <Avatar

@@ -21,7 +21,7 @@ export default function ProfileDropdown({
   const [open, setOpen] = useState(false)
 
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
+    <DropdownMenu modal={false} open={open} onOpenChange={setOpen}>
       <div
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}
@@ -33,7 +33,7 @@ export default function ProfileDropdown({
         </div>
 
         {/* Dropdown content */}
-        <DropdownMenuContent
+        <DropdownMenuContent 
           className="absolute right-0 mt-2"
           sideOffset={4}
           align="end"
