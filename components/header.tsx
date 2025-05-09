@@ -10,7 +10,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import ProfileDropdown from "@/components/profile-dropdown"
 import logoBanner from "@/public/logo.png";
 import Image from "next/image";
 import Avatar from "boring-avatars";
