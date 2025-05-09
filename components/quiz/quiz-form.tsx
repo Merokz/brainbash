@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { QuestionForm } from "./question-form"
+import { showToast } from "@/lib/sonner"
 
 interface Question {
   id?: number
@@ -32,7 +33,6 @@ export function QuizForm({ quiz }: { quiz?: any }) {
   const [questions, setQuestions] = useState<Question[]>(quiz?.questions || [])
   const [activeTab, setActiveTab] = useState("details")
   const [saving, setSaving] = useState(false)
-  const [error, setError] = useState("")
   const router = useRouter()
 
   useEffect(() => {
@@ -47,7 +47,7 @@ export function QuizForm({ quiz }: { quiz?: any }) {
   const addQuestion = () => {
     // Don't allow more than 8 questions
     if (questions.length >= 8) {
-      setError("Maximum of 8 questions allowed per quiz")
+      showToast("Maximum of 8 questions allowed per quiz", false)
       return
     }
     
@@ -80,13 +80,13 @@ export function QuizForm({ quiz }: { quiz?: any }) {
   const handleSubmit = async () => {
     // Validate form
     if (!title.trim()) {
-      setError("Quiz title is required")
+      showToast("quiz title is required", false)
       setActiveTab("details")
       return
     }
 
     if (questions.length === 0) {
-      setError("At least one question is required")
+      showToast("at least one question is required", false)
       setActiveTab("questions")
       return
     }
@@ -96,28 +96,27 @@ export function QuizForm({ quiz }: { quiz?: any }) {
       const q = questions[i]
 
       if (!q.questionText.trim()) {
-        setError(`Question ${i + 1} text is required`)
+        showToast(`question ${i + 1} text is required`, false)
         setActiveTab("questions")
         return
       }
 
       // Check if at least one answer is marked as correct
       if (!q.answers.some((a) => a.isCorrect)) {
-        setError(`Question ${i + 1} must have at least one correct answer`)
+        showToast(`question ${i + 1} must have at least one correct answer`, false)
         setActiveTab("questions")
         return
       }
 
       // Check if all answers have text
       if (q.answers.some((a) => !a.answerText.trim())) {
-        setError(`All answers for question ${i + 1} must have text`)
+        showToast(`all answers for question ${i + 1} must have text`, false)
         setActiveTab("questions")
         return
       }
     }
 
     setSaving(true)
-    setError("")
 
     try {
       console.log(JSON.stringify({
@@ -145,14 +144,15 @@ export function QuizForm({ quiz }: { quiz?: any }) {
 
       if (response.ok) {
         const data = await response.json()
+        showToast("quiz created successfully", true)
         router.push("/")
       } else {
         const errorData = await response.json()
-        setError(errorData.error || "Failed to save quiz")
+        showToast("failed to save quiz", false)
       }
     } catch (error) {
       console.error("Error saving quiz:", error)
-      setError("An error occurred while saving the quiz")
+      showToast("an error occurred while saving the quiz", false)
     } finally {
       setSaving(false)
     }
@@ -235,7 +235,6 @@ export function QuizForm({ quiz }: { quiz?: any }) {
             </p>
           )}
 
-          {error && <div className="text-sm text-red-500 mt-2">{error}</div>}
           
           <div className="flex justify-between">
             <Button variant="outline" onClick={() => setActiveTab("details")}>

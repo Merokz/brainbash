@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import Avatar from "boring-avatars";
+import Avatar from "boring-avatars"
+import { showToast } from "@/lib/sonner"
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null)
@@ -36,9 +37,9 @@ export default function ProfilePage() {
     })
 
     if (res.ok) {
-      alert("Profile updated")
+      showToast("changes saved successfully!", true)
     } else {
-      alert("Failed to update")
+      alert("failed to update user!")
     }
   }
 

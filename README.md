@@ -22,3 +22,12 @@ BASE_URL = "http://10.3.35.110:3000"
 
 blockwochentimmy@gmail.com
 dioadai1290@da;.dawd1
+
+colors:
+#172D53, #AE0600
+
+toast usage: 
+
+import { showToast } from "@/lib/sonner"
+
+showToast("changes saved successfully!", true)

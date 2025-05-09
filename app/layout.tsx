@@ -6,7 +6,7 @@ import Providers from "@/components/providers"
 import { Header } from "@/components/header"
 import { getUserFromToken } from "@/lib/auth"
 import { cookies } from "next/headers"
-//const inter = Inter({ subsets: ["latin"] })
+import { Toaster } from "@/components/ui/sonner"
 const poppins = Poppins({
   weight: ['300', '400', '500', '600', '700'],
   subsets : ['latin']
@@ -34,6 +34,7 @@ export default async function RootLayout({
           <Header user={user} />
           {children} 
         </Providers>
+        <Toaster />
       </body>
     </html>
   )
