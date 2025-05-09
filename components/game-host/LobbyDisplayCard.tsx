@@ -10,6 +10,7 @@ interface LobbyDisplayCardProps {
   participantsCount: number;
   onCopyJoinCode: () => void;
   onStartGame: () => void;
+  isStartingGame: boolean;
 }
 
 export function LobbyDisplayCard({
@@ -17,6 +18,7 @@ export function LobbyDisplayCard({
   participantsCount,
   onCopyJoinCode,
   onStartGame,
+  isStartingGame,
 }: LobbyDisplayCardProps) {
   const joinLink = typeof window !== 'undefined' ? `${window.location.origin}/join?code=${joinCode}` : '';
 
@@ -49,7 +51,7 @@ export function LobbyDisplayCard({
         </CardContent>
       </Card>
       <div className="flex justify-end">
-        <Button size="lg" onClick={onStartGame} disabled={participantsCount === 0}>
+        <Button size="lg" onClick={onStartGame} disabled={participantsCount === 0 || isStartingGame} loading={isStartingGame}>
           start game ({participantsCount} {participantsCount === 1 ? "player" : "players"})
           <ChevronRight className="ml-2 h-4 w-4" />
         </Button>

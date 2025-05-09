@@ -242,8 +242,8 @@ export function QuizForm({ quiz }: { quiz?: any }) {
               back to details
             </Button>
 
-            <Button onClick={handleSubmit} disabled={saving}>
-              {saving ? "saving..." : quiz?.id ? "update quiz" : "create quiz"}
+            <Button onClick={handleSubmit} loading={saving} disabled={saving}>
+              {quiz?.id ? "update quiz" : "create quiz"}
             </Button>
           </div>
         </TabsContent>

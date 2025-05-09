@@ -28,6 +28,7 @@ interface QuestionInProgressCardProps {
   answeredCount: number;
   totalParticipants: number;
   onEndQuestionEarly: () => void;
+  isLoadingAction?: boolean; // Added
 }
 
 export function QuestionInProgressCard({
@@ -37,6 +38,7 @@ export function QuestionInProgressCard({
   answeredCount,
   totalParticipants,
   onEndQuestionEarly,
+  isLoadingAction, // Added
 }: QuestionInProgressCardProps) {
   const timeLimit = question.timeToAnswer; // Use timeToAnswer from the question object
 
@@ -82,7 +84,7 @@ export function QuestionInProgressCard({
             <AlertCircle className="h-4 w-4 inline mr-1.5" />
             waiting for participants to answer... ({answeredCount}/{totalParticipants} answered)
           </div>
-          <Button variant="outline" onClick={onEndQuestionEarly} disabled={timeLeft <= 0}>
+          <Button variant="outline" onClick={onEndQuestionEarly} disabled={timeLeft <= 0 || isLoadingAction} loading={isLoadingAction}> {/* Modified */}
             end question early
           </Button>
         </div>

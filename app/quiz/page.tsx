@@ -20,13 +20,13 @@ interface Quiz {
 }
 
 export default function HostGame() {
+  const router = useRouter()
   const [user, setUser] = useState<any>(null)
   const [publicQuizzes, setPublicQuizzes] = useState<Quiz[]>([])
   const [userQuizzes, setUserQuizzes] = useState<Quiz[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
-
-  const router = useRouter()
+  const [hostingQuizId, setHostingQuizId] = useState<number | null>(null)
 
   useEffect(() => {
     async function fetchData() {
@@ -57,6 +57,7 @@ export default function HostGame() {
   }, [])
 
   const handleHostQuiz = async (quizId: number) => {
+    setHostingQuizId(quizId)
     try {
       const response = await fetch("/api/lobbies", {
         method: "POST",
@@ -77,6 +78,8 @@ export default function HostGame() {
       }
     } catch (error) {
       console.error("Error creating lobby:", error)
+    } finally {
+      setHostingQuizId(null)
     }
   }
 
@@ -140,7 +143,7 @@ export default function HostGame() {
                         <div className="text-sm text-muted-foreground">{quiz._count.questions} questions</div>
                         <div className="flex items-center">
                           <Button variant="outline" onClick={() => handleEditQuiz(quiz.id)} className="mx-4"><Pencil />edit quiz</Button>
-                          <Button variant="outline" onClick={() => handleHostQuiz(quiz.id)}>host game</Button>
+                          <Button variant="outline" onClick={() => handleHostQuiz(quiz.id)} loading={hostingQuizId === quiz.id}>host game</Button>
                         </div>
                       </div>
                     </CardContent>
@@ -171,7 +174,7 @@ export default function HostGame() {
                     <CardContent>
                       <div className="flex justify-between items-center">
                         <div className="text-sm text-muted-foreground">{quiz._count.questions} questions</div>
-                        <Button variant="outline" onClick={() => handleHostQuiz(quiz.id)}>host game</Button>
+                        <Button variant="outline" onClick={() => handleHostQuiz(quiz.id)} loading={hostingQuizId === quiz.id}>host game</Button>
                       </div>
                     </CardContent>
                   </Card>

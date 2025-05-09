@@ -11,6 +11,7 @@ interface GameWaitingCardProps {
   currentQuestionIndex: number; // -1 for "Game Starting Soon"
   onStartQuestion: () => void;
   onEndGame: () => void;
+  isLoadingAction?: boolean; // Added
 }
 
 export function GameWaitingCard({
@@ -20,6 +21,7 @@ export function GameWaitingCard({
   currentQuestionIndex,
   onStartQuestion,
   onEndGame,
+  isLoadingAction, // Added
 }: GameWaitingCardProps) {
   if (currentQuestionIndex === -1) {
     // Game Starting Soon
@@ -34,7 +36,7 @@ export function GameWaitingCard({
             there are {questionsCount} questions.
           </p>
           <div className="flex justify-end">
-            <Button onClick={onStartQuestion} size="lg">
+            <Button onClick={onStartQuestion} size="lg" loading={isLoadingAction} disabled={isLoadingAction}> {/* Modified */}
               start first question
               <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
@@ -56,7 +58,7 @@ export function GameWaitingCard({
             question {currentQuestionIndex + 1} completed. ready to proceed to question {currentQuestionIndex + 2}.
           </p>
           <div className="flex justify-end">
-            <Button onClick={onStartQuestion}>
+            <Button onClick={onStartQuestion} loading={isLoadingAction} disabled={isLoadingAction}> {/* Modified */}
               start next question
               <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
@@ -77,7 +79,7 @@ export function GameWaitingCard({
           all {questionsCount} questions have been completed.
         </p>
         <div className="flex justify-end">
-          <Button onClick={onEndGame}>
+          <Button onClick={onEndGame} loading={isLoadingAction} disabled={isLoadingAction}> {/* Modified */}
             show final results
             <ChevronRight className="ml-2 h-4 w-4" />
           </Button>

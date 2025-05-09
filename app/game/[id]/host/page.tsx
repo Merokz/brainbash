@@ -30,6 +30,8 @@ export default function GameHostPage() {
   const [loading, setLoading] = useState(true);
   const [serverStartTime, setServerStartTime] = useState<string | null>(null);
   const [participantAnswers, setParticipantAnswers] = useState<ParticipantAnswer[]>([]);
+  const [isStartingGame, setIsStartingGame] = useState(false); // Added
+  const [isProcessingNextAction, setIsProcessingNextAction] = useState(false); // Added (for start question, end question, end game)
   const router = useRouter();
 
   const timePerQuestionForHook = gameState === "question" && quiz?.questions?.[currentQuestionIndex]?.timeToAnswer
@@ -195,6 +197,7 @@ export default function GameHostPage() {
   // Function to start the game from the lobby view
   const handleStartGameFromLobby = async () => {
     if (!lobbyData) return;
+    setIsStartingGame(true); // Added
     try {
       const response = await fetch(`/api/lobbies/${params.id}/start`, {
         method: "POST",
@@ -206,16 +209,22 @@ export default function GameHostPage() {
       // Pusher event GAME_STARTED will handle UI transition
     } catch (error) {
       console.error("Error starting game:", error);
+    } finally {
+      setIsStartingGame(false); // Added
     }
   };
 
   const handleStartQuestion = async () => {
     if (!quiz || !lobbyData) return;
+    setIsProcessingNextAction(true); // Added
 
     const isEndingGame = currentQuestionIndex >= quiz.questions.length - 1;
 
     if (isEndingGame) { // This case should be handled by the button in QuestionResultsCard or GameWaitingCard
-      handleEndGame();
+      // handleEndGame will set its own loading state if called directly
+      // but if called from here, we ensure the button shows loading
+      await handleEndGame(); // Ensure await if handleEndGame is async and sets its own state
+      setIsProcessingNextAction(false); // Reset after handleEndGame completes
       return;
     }
 
@@ -240,12 +249,15 @@ export default function GameHostPage() {
       // Pusher event QUESTION_STARTED will update serverStartTime, gameState, currentIndex
     } catch (error) {
       console.error("Error starting question:", error);
+    } finally {
+      setIsProcessingNextAction(false); // Added
     }
   };
 
   const handleQuestionTimeout = async () => {
     // Ensure we are in 'question' state and it's the current question timing out
     if (gameState !== "question" || !lobbyData || serverStartTime === null) return;
+    setIsProcessingNextAction(true); // Added
 
     setGameState("results");
     setServerStartTime(null);
@@ -261,11 +273,14 @@ export default function GameHostPage() {
       }
     } catch (error) {
       console.error("Error ending question:", error);
+    } finally {
+      setIsProcessingNextAction(false); // Added
     }
   };
 
   const handleEndGame = async () => {
     if (!lobbyData) return;
+    setIsProcessingNextAction(true); // Added
     try {
       const response = await fetch(`/api/lobbies/${params.id}/end`, {
         method: "POST"
@@ -277,6 +292,8 @@ export default function GameHostPage() {
       }
     } catch (error) {
       console.error("Error ending game:", error);
+    } finally {
+      setIsProcessingNextAction(false); // Added
     }
   };
 
@@ -362,6 +379,7 @@ export default function GameHostPage() {
                 participantsCount={participants.length}
                 onCopyJoinCode={handleCopyJoinCode}
                 onStartGame={handleStartGameFromLobby}
+                isStartingGame={isStartingGame} // Modified
               />
             )}
 
@@ -373,6 +391,7 @@ export default function GameHostPage() {
                 currentQuestionIndex={currentQuestionIndex}
                 onStartQuestion={handleStartQuestion}
                 onEndGame={handleEndGame} // Pass handleEndGame for "Show Final Results"
+                isLoadingAction={isProcessingNextAction} // Added
               />
             )}
 
@@ -385,6 +404,7 @@ export default function GameHostPage() {
                 answeredCount={participantAnswers.length}
                 totalParticipants={participants.length}
                 onEndQuestionEarly={handleQuestionTimeout}
+                isLoadingAction={isProcessingNextAction} // Added
               />
             )}
 
@@ -395,6 +415,7 @@ export default function GameHostPage() {
                 participantAnswers={participantAnswers}
                 isLastQuestion={currentQuestionIndex >= quiz.questions.length - 1}
                 onNextAction={currentQuestionIndex >= quiz.questions.length - 1 ? handleEndGame : handleStartQuestion}
+                isLoadingAction={isProcessingNextAction} // Added
               />
             )}
 

@@ -32,6 +32,7 @@ interface QuestionResultsCardProps {
   participantAnswers: ParticipantAnswer[];
   isLastQuestion: boolean;
   onNextAction: () => void; // Handles "Next Question" or "Show Final Results"
+  isLoadingAction?: boolean; // Added
 }
 
 export function QuestionResultsCard({
@@ -40,6 +41,7 @@ export function QuestionResultsCard({
   participantAnswers,
   isLastQuestion,
   onNextAction,
+  isLoadingAction, // Added
 }: QuestionResultsCardProps) {
   const totalValidAnswers = participantAnswers.filter(pa => pa.answerId !== null).length;
 
@@ -84,7 +86,7 @@ export function QuestionResultsCard({
         </div>
 
         <div className="flex justify-end">
-          <Button onClick={onNextAction} size="lg">
+          <Button onClick={onNextAction} size="lg" loading={isLoadingAction} disabled={isLoadingAction}> {/* Modified */}
             {isLastQuestion ? "Show Final Results" : (
               <>
                 next question
