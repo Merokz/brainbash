@@ -1,8 +1,7 @@
-import * as React from 'react';
 import { Text } from '@react-email/components';
 import { theme } from './email-theme';
 
-export const Footer: React.FC = () => (
+export const Footer: FC = () => (
     <div
         style={{
             marginTop: '30px',

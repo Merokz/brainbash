@@ -1,10 +1,6 @@
 'use client';
 
-import type React from 'react';
-
-import { JSX, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 import {
     Card,
     CardContent,
@@ -13,11 +9,12 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import logo from '@/public/logo.png';
 import Image from 'next/image';
+import Link from 'next/link';
+import { JSX, useState } from 'react';
 
 const Register = (): JSX.Element => {
     const [formData, setFormData] = useState({
@@ -28,14 +25,13 @@ const Register = (): JSX.Element => {
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const router = useRouter();
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>): any => {
+    const handleChange = (e: ChangeEvent<HTMLInputElement>): any => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleSubmit = async (e: React.FormEvent): Promise<any> => {
+    const handleSubmit = async (e: FormEvent): Promise<any> => {
         e.preventDefault();
 
         // Validate form

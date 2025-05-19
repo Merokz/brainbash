@@ -1,10 +1,11 @@
 'use client';
 
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { AlertCircle } from 'lucide-react';
+import Image from 'next/image';
+import { JSX } from 'react';
 
 // Define Question and Answer types based on your data structure
 interface Answer {
@@ -37,7 +38,7 @@ export const QuestionInProgressCard = ({
     answeredCount,
     totalParticipants,
     onEndQuestionEarly,
-}: QuestionInProgressCardProps) => {
+}: QuestionInProgressCardProps): JSX.Element => {
     const timeLimit = question.timeToAnswer; // Use timeToAnswer from the question object
 
     return (

@@ -7,18 +7,18 @@ const SECRET_KEY = new TextEncoder().encode(
     process.env.JWT_SECRET || 'default-secret-key-change-in-production',
 );
 
-export async function hashPassword(password: string): Promise<string> {
+export const hashPassword = async (password: string): Promise<string> => {
     return hash(password, 10);
-}
+};
 
-export async function comparePasswords(
+export const comparePasswords = async (
     plainPassword: string,
     hashedPassword: string,
-): Promise<boolean> {
+): Promise<boolean> => {
     return compare(plainPassword, hashedPassword);
-}
+};
 
-export async function createUserToken(userId: number): Promise<string> {
+export const createUserToken = async (userId: number): Promise<string> => {
     const token = await new SignJWT({ userId })
         .setProtectedHeader({ alg: 'HS256' })
         .setIssuedAt()
@@ -26,12 +26,12 @@ export async function createUserToken(userId: number): Promise<string> {
         .sign(SECRET_KEY);
 
     return token;
-}
+};
 
-export async function createParticipantToken(
+export const createParticipantToken = async (
     participantId: number,
     lobbyId: number,
-): Promise<string> {
+): Promise<string> => {
     const token = await new SignJWT({
         participantId,
         lobbyId,
@@ -43,18 +43,19 @@ export async function createParticipantToken(
         .sign(SECRET_KEY);
 
     return token;
-}
+};
 
-export async function verifyToken(token: string): Promise<any> {
+export const verifyToken = async (token: string): Promise<any> => {
     try {
         const { payload } = await jwtVerify(token, SECRET_KEY);
         return payload;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
         return null;
     }
-}
+};
 
-export async function getUserFromToken(): Promise<any> {
+export const getUserFromToken = async (): Promise<any> => {
     const cookieStore = cookies(); // Get the cookie store instance
     const token = (await cookieStore).get('auth_token')?.value; // Access its methods directly
 
@@ -83,9 +84,9 @@ export async function getUserFromToken(): Promise<any> {
         );
         return null;
     }
-}
+};
 
-export async function getParticipantFromToken(token: string): Promise<any> {
+export const getParticipantFromToken = async (token: string): Promise<any> => {
     try {
         const payload = await verifyToken(token);
         if (!payload || !payload.participantId || !payload.lobbyId) {
@@ -111,4 +112,4 @@ export async function getParticipantFromToken(token: string): Promise<any> {
         );
         return null;
     }
-}
+};

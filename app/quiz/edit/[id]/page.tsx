@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState, use, JSX } from 'react';
-import { Quiz } from '@prisma/client';
 import { QuizForm } from '@/components/quiz/quiz-form';
+import { Quiz } from '@prisma/client';
+import { JSX, use, useEffect, useState } from 'react';
 
 const EditQuiz = (props: { params: Promise<{ id: string }> }): JSX.Element => {
     const params = use(props.params);
@@ -18,6 +18,7 @@ const EditQuiz = (props: { params: Promise<{ id: string }> }): JSX.Element => {
         };
         fetchQuiz();
         setLoading(false);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     if (loading) {

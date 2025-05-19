@@ -1,8 +1,5 @@
 'use client';
 
-import { useState, useEffect, Suspense, JSX } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -11,9 +8,12 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { SquarePlus, Pencil } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Pencil, SquarePlus } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { JSX, Suspense, useEffect, useState } from 'react';
 
 interface Quiz {
     id: number;
@@ -26,7 +26,6 @@ interface Quiz {
 }
 
 const HostGame = (): JSX.Element => {
-    const [user, setUser] = useState<any>(null);
     const [publicQuizzes, setPublicQuizzes] = useState<Quiz[]>([]);
     const [userQuizzes, setUserQuizzes] = useState<Quiz[]>([]);
     const [loading, setLoading] = useState(true);
@@ -37,12 +36,6 @@ const HostGame = (): JSX.Element => {
     useEffect(() => {
         const fetchData = async (): Promise<any> => {
             try {
-                const user = await fetch('/api/auth/me');
-                if (user.ok) {
-                    const userData = await user.json();
-                    setUser(userData);
-                }
-
                 // Fetch public quizzes
                 const publicResponse = await fetch('/api/quizzes?type=public');
                 const publicData = await publicResponse.json();

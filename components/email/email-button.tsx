@@ -1,16 +1,12 @@
-import * as React from 'react';
 import { Button } from '@react-email/components';
 import { theme } from './email-theme';
 
 interface PrimaryButtonProps {
     href: string;
-    children: React.ReactNode;
+    children: ReactNode;
 }
 
-export const PrimaryButton: React.FC<PrimaryButtonProps> = ({
-    href,
-    children,
-}) => (
+export const PrimaryButton: FC<PrimaryButtonProps> = ({ href, children }) => (
     <Button
         href={href}
         style={{

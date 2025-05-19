@@ -1,13 +1,9 @@
 'use client';
 
 import { ThemeProvider } from 'next-themes';
-import { JSX, useEffect, useState } from 'react';
+import { JSX, ReactNode, useEffect, useState } from 'react';
 
-const Providers = ({
-    children,
-}: {
-    children: React.ReactNode;
-}): JSX.Element => {
+const Providers = ({ children }: { children: ReactNode }): JSX.Element => {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -29,6 +25,7 @@ const Providers = ({
     }, []);
 
     if (!mounted) {
+        // eslint-disable-next-line react/jsx-no-useless-fragment
         return <>{children}</>;
     }
 

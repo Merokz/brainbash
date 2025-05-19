@@ -1,10 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -15,6 +10,11 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { JSX, useState } from 'react';
 
 interface Quiz {
     id: number;
@@ -29,11 +29,12 @@ interface QuizListProps {
     quizzes: Quiz[];
 }
 
-export const QuizList = ({ quizzes }: QuizListProps) => {
+export const QuizList = ({ quizzes }: QuizListProps): JSX.Element => {
     const [deleteQuizId, setDeleteQuizId] = useState<number | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const router = useRouter();
 
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const handleDeleteQuiz = async () => {
         if (!deleteQuizId) return;
 

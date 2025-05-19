@@ -1,9 +1,8 @@
-import * as React from 'react';
 import { Text } from '@react-email/components';
-import { Layout } from './email-layout';
-import { Header } from './email-header';
-import { Footer } from './email-footer';
 import { PrimaryButton } from './email-button';
+import { Footer } from './email-footer';
+import { Header } from './email-header';
+import { Layout } from './email-layout';
 import { theme } from './email-theme';
 
 interface ResetPasswordEmailProps {
@@ -11,7 +10,7 @@ interface ResetPasswordEmailProps {
     resetLink: string;
 }
 
-export const ResetPasswordEmail: React.FC<ResetPasswordEmailProps> = ({
+export const ResetPasswordEmail: FC<ResetPasswordEmailProps> = ({
     email,
     resetLink,
 }) => (

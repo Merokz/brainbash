@@ -1,8 +1,9 @@
 'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
+import { JSX } from 'react';
 
-export const GameWaitingScreen = () => {
+export const GameWaitingScreen = (): JSX.Element => {
     return (
         <Card className="w-full max-w-md">
             <CardContent className="pt-6 text-center py-12">

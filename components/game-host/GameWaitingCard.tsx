@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChevronRight } from 'lucide-react';
+import { JSX } from 'react';
 
 interface GameWaitingCardProps {
     quizTitle: string;
@@ -20,7 +21,7 @@ export const GameWaitingCard = ({
     currentQuestionIndex,
     onStartQuestion,
     onEndGame,
-}: GameWaitingCardProps) => {
+}: GameWaitingCardProps): JSX.Element => {
     if (currentQuestionIndex === -1) {
         // Game Starting Soon
         return (

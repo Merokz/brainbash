@@ -8,8 +8,9 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { Copy, ChevronRight } from 'lucide-react';
+import { ChevronRight, Copy } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
+import { JSX } from 'react';
 
 interface LobbyDisplayCardProps {
     joinCode: string;
@@ -23,7 +24,7 @@ export const LobbyDisplayCard = ({
     participantsCount,
     onCopyJoinCode,
     onStartGame,
-}: LobbyDisplayCardProps) => {
+}: LobbyDisplayCardProps): JSX.Element => {
     const joinLink =
         typeof window !== 'undefined'
             ? `${window.location.origin}/join?code=${joinCode}`

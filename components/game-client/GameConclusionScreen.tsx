@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
+import { JSX } from 'react';
 
 interface TopPlayer {
     username: string;
@@ -23,7 +24,7 @@ interface GameConclusionScreenProps {
 
 export const GameConclusionScreen = ({
     conclusion,
-}: GameConclusionScreenProps) => {
+}: GameConclusionScreenProps): JSX.Element => {
     const router = useRouter();
 
     return (

@@ -1,12 +1,6 @@
 'use client';
 
-import { useState, Suspense, JSX } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import Image from 'next/image';
-import logo from '@/public/logo.png';
 import {
     Card,
     CardContent,
@@ -15,7 +9,13 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import logo from '@/public/logo.png';
+import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { JSX, Suspense, useState } from 'react';
 
 const ResetPasswordPage = (): JSX.Element => {
     const [password, setPassword] = useState('');
@@ -28,7 +28,7 @@ const ResetPasswordPage = (): JSX.Element => {
     const params = useSearchParams();
     const token = params.get('token');
 
-    const handleReset = async (e: React.FormEvent): Promise<any> => {
+    const handleReset = async (e: FormEvent): Promise<any> => {
         e.preventDefault();
 
         if (!token) {
@@ -59,7 +59,8 @@ const ResetPasswordPage = (): JSX.Element => {
                 const data = await res.json();
                 setError(data.error || 'Something went wrong.');
             }
-        } catch (_err) {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (error) {
             setError('Unexpected error.');
         } finally {
             setLoading(false);

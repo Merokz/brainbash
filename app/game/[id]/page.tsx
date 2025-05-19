@@ -78,7 +78,6 @@ const GamePage = (): JSX.Element => {
         const lobbyChannelName = CHANNELS.lobby(params.id); // Presence channel
         const gameChannelName = CHANNELS.game(params.id); // Private channel
 
-        const lobbyChannel = pusherClient.subscribe(lobbyChannelName);
         const gameChannel = pusherClient.subscribe(gameChannelName);
 
         // Bind to lobby channel events if needed by participant UI, e.g., to show other users.

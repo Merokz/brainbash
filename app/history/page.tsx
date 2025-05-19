@@ -1,6 +1,5 @@
 'use client';
 
-import React, { useState, useEffect, JSX } from 'react';
 import {
     Card,
     CardContent,
@@ -8,14 +7,14 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import { JSX, useEffect, useState } from 'react';
 
 const History = (): JSX.Element => {
-    const [user, setUser] = useState<any>(null);
     const [lobbies, setLobbies] = useState<any[]>([null]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchData = async (): Promise<void> => {
             try {
                 setLoading(true);
                 const userResponse = await fetch('/api/auth/me');
@@ -25,7 +24,6 @@ const History = (): JSX.Element => {
                     return;
                 }
                 const userData = await userResponse.json();
-                setUser(userData);
 
                 const historyResponse = await fetch(
                     `/api/lobbies/history?userId=${userData.id}`,

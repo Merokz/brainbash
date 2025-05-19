@@ -1,9 +1,6 @@
 'use client';
 
-import type React from 'react';
-
-import { useState } from 'react';
-import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 import {
     Card,
     CardContent,
@@ -12,19 +9,20 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import Image from 'next/image';
 import logo from '@/public/logo.png';
+import Image from 'next/image';
+import Link from 'next/link';
+import { JSX, useState } from 'react';
 
-export default function ForgotPassword() {
+export const ForgotPassword = (): JSX.Element => {
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: FormEvent): Promise<any> => {
         e.preventDefault();
 
         if (!email) {
@@ -118,4 +116,4 @@ export default function ForgotPassword() {
             </Card>
         </div>
     );
-}
+};

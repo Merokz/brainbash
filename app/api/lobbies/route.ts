@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createLobby, getPublicLobbies } from '@/lib/commands';
 import { getUserFromToken } from '@/lib/auth';
-import { pusherServer, EVENTS } from '@/lib/pusher-service';
+import { createLobby, getPublicLobbies } from '@/lib/commands';
+import { EVENTS, pusherServer } from '@/lib/pusher-service';
+import { NextRequest, NextResponse } from 'next/server';
 
 export const POST = async (req: NextRequest): Promise<any> => {
     try {
@@ -52,7 +52,7 @@ export const POST = async (req: NextRequest): Promise<any> => {
     }
 };
 
-export async function GET() {
+export const GET = async (): Promise<any> => {
     try {
         const lobbies = await getPublicLobbies();
         if (!lobbies) {
@@ -69,4 +69,4 @@ export async function GET() {
             { status: 500 },
         );
     }
-}
+};

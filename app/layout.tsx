@@ -4,7 +4,6 @@ import { getUserFromToken } from '@/lib/auth';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { cookies } from 'next/headers';
-import type React from 'react';
 import { JSX } from 'react';
 import './globals.css';
 
@@ -20,7 +19,7 @@ export const metadata: Metadata = {
 const RootLayout = async ({
     children,
 }: {
-    children: React.ReactNode;
+    children: ReactNode;
 }): Promise<JSX.Element> => {
     const user = await getUserFromToken();
     const cookieStore = await cookies(); // Get cookies

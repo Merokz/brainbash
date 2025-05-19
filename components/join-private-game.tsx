@@ -1,7 +1,5 @@
 'use client';
 
-import type React from 'react';
-
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -13,16 +11,17 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { FormEvent, JSX, useState } from 'react';
 
-export const JoinPrivateGame = () => {
+export const JoinPrivateGame = (): JSX.Element => {
     const [joinCode, setJoinCode] = useState('');
     const [username, setUsername] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const router = useRouter();
 
-    const handleJoinGame = async (e: React.FormEvent) => {
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    const handleJoinGame = async (e: FormEvent) => {
         e.preventDefault();
 
         if (!joinCode.trim() || !username.trim()) return;

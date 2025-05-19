@@ -8,6 +8,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import { JSX } from 'react';
 
 interface Participant {
     id: number | string;
@@ -25,7 +26,7 @@ export const GameConclusionCard = ({
     quizTitle,
     participants,
     onReturnToHome,
-}: GameConclusionCardProps) => {
+}: GameConclusionCardProps): JSX.Element => {
     const sortedParticipants = [...participants].sort(
         (a, b) => b.score - a.score,
     );

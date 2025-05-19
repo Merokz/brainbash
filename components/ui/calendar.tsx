@@ -1,20 +1,20 @@
 'use client';
 
-import * as React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ComponentProps, JSX } from 'react';
 import { DayPicker } from 'react-day-picker';
 
-import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
-export type CalendarProps = React.ComponentProps<typeof DayPicker>;
+export type CalendarProps = ComponentProps<typeof DayPicker>;
 
 const Calendar = ({
     className,
     classNames,
     showOutsideDays = true,
     ...props
-}: CalendarProps) => {
+}: CalendarProps): JSX.Element => {
     return (
         <DayPicker
             showOutsideDays={showOutsideDays}
@@ -54,7 +54,9 @@ const Calendar = ({
                 ...classNames,
             }}
             components={{
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 IconLeft: ({ ...props }) => <ChevronLeft className="h-4 w-4" />,
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 IconRight: ({ ...props }) => (
                     <ChevronRight className="h-4 w-4" />
                 ),

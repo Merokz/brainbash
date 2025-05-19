@@ -1,3 +1,3 @@
-export * from "./quiz";
+export * from './quiz';
 // export * from "./game";
-export * from "./prisma";
+export * from './prisma';

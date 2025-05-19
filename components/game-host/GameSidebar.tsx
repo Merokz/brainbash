@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { JSX } from 'react';
 
 interface Participant {
     id: number | string;
@@ -14,7 +15,10 @@ interface GameSidebarProps {
     gameState: 'lobby' | 'waiting' | 'question' | 'results' | 'conclusion';
 }
 
-export const GameSidebar = ({ participants, gameState }: GameSidebarProps) => {
+export const GameSidebar = ({
+    participants,
+    gameState,
+}: GameSidebarProps): JSX.Element => {
     const sortedByScore = [...participants].sort((a, b) => b.score - a.score);
     const sortedByName = [...participants].sort((a, b) =>
         a.username.localeCompare(b.username),

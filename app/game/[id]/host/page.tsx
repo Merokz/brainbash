@@ -19,7 +19,6 @@ import { Timer } from 'lucide-react';
 
 const GameHostPage = (): JSX.Element => {
     const params = useParams<{ id: string }>();
-    const [user, setUser] = useState<any>(null);
     const [lobbyData, setLobbyData] = useState<any>(null);
     const [quiz, setQuiz] = useState<any>(null);
     // Ensure participants state matches the structure expected by child components
@@ -55,14 +54,8 @@ const GameHostPage = (): JSX.Element => {
 
     // Fetch initial data and set up Pusher
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchData = async (): Promise<any> => {
             try {
-                const userResponse = await fetch('/api/auth/me');
-                if (userResponse.ok) {
-                    const userData = await userResponse.json();
-                    setUser(userData);
-                }
-
                 const lobbyResponse = await fetch(`/api/lobbies/${params.id}`);
                 if (lobbyResponse.ok) {
                     const data = await lobbyResponse.json();
@@ -262,7 +255,7 @@ const GameHostPage = (): JSX.Element => {
     }, [timeLeft, gameState, serverStartTime, currentQuestionIndex]); // Added currentQuestionIndex
 
     // Function to start the game from the lobby view
-    const handleStartGameFromLobby = async () => {
+    const handleStartGameFromLobby = async (): Promise<void> => {
         if (!lobbyData) return;
         try {
             const response = await fetch(`/api/lobbies/${params.id}/start`, {
@@ -278,7 +271,7 @@ const GameHostPage = (): JSX.Element => {
         }
     };
 
-    const handleStartQuestion = async () => {
+    const handleStartQuestion = async (): Promise<void> => {
         if (!quiz || !lobbyData) return;
 
         const isEndingGame = currentQuestionIndex >= quiz.questions.length - 1;
@@ -325,7 +318,7 @@ const GameHostPage = (): JSX.Element => {
         }
     };
 
-    const handleQuestionTimeout = async () => {
+    const handleQuestionTimeout = async (): Promise<void> => {
         // Ensure we are in 'question' state and it's the current question timing out
         if (gameState !== 'question' || !lobbyData || serverStartTime === null)
             return;
@@ -352,7 +345,7 @@ const GameHostPage = (): JSX.Element => {
         }
     };
 
-    const handleEndGame = async () => {
+    const handleEndGame = async (): Promise<void> => {
         if (!lobbyData) return;
         try {
             const response = await fetch(`/api/lobbies/${params.id}/end`, {
@@ -368,11 +361,11 @@ const GameHostPage = (): JSX.Element => {
         }
     };
 
-    const handleReturnToHome = () => {
+    const handleReturnToHome = (): void => {
         router.push('/');
     };
 
-    const handleCopyJoinCode = async () => {
+    const handleCopyJoinCode = async (): Promise<void> => {
         const text = lobbyData?.joinCode;
         if (!text) return;
         try {

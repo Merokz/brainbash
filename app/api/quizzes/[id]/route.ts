@@ -1,12 +1,12 @@
 // filepath: c:\dev\brainbash\app\api\quizzes\[id]\route.ts
-import { NextResponse } from 'next/server';
+import { getUserFromToken } from '@/lib/auth';
 import {
+    createQuizVersion,
     findQuizById,
     getQuizById,
     softDeleteQuiz,
-    createQuizVersion,
 } from '@/lib/commands';
-import { getUserFromToken } from '@/lib/auth';
+import { NextResponse } from 'next/server';
 
 export const GET = async (
     request: Request,
@@ -54,10 +54,10 @@ export const GET = async (
     }
 };
 
-export async function PUT(
+export const PUT = async (
     request: Request,
     props: { params: Promise<{ id: string }> },
-) {
+): Promise<any> => {
     const params = await props.params;
     try {
         const quizId = Number.parseInt(params.id);
@@ -125,12 +125,12 @@ export async function PUT(
             { status: 500 },
         );
     }
-}
+};
 
-export async function DELETE(
+export const DELETE = async (
     request: Request,
     props: { params: Promise<{ id: string }> },
-) {
+): Promise<any> => {
     const params = await props.params;
     try {
         const quizId = Number.parseInt(params.id);
@@ -178,4 +178,4 @@ export async function DELETE(
             { status: 500 },
         );
     }
-}
+};

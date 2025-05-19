@@ -1,11 +1,11 @@
 'use client';
 
-import type React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
     Select,
     SelectContent,
@@ -13,9 +13,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Textarea } from '@/components/ui/textarea';
 import { X } from 'lucide-react';
+import { ChangeEvent, JSX } from 'react';
 
 interface Question {
     id?: number;
@@ -47,9 +47,10 @@ export const QuestionForm = ({
     index,
     onChange,
     onRemove,
-}: QuestionFormProps) => {
+}: QuestionFormProps): JSX.Element => {
     const handleQuestionTextChange = (
-        e: React.ChangeEvent<HTMLTextAreaElement>,
+        e: ChangeEvent<HTMLTextAreaElement>,
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     ) => {
         onChange({
             ...question,
@@ -57,6 +58,7 @@ export const QuestionForm = ({
         });
     };
 
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const handleQuestionTypeChange = (value: string) => {
         let newAnswers: Answer[] = [];
 
@@ -90,6 +92,7 @@ export const QuestionForm = ({
         });
     };
 
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const handleAnswerTextChange = (index: number, text: string) => {
         const newAnswers = [...question.answers];
         newAnswers[index] = {
@@ -103,6 +106,7 @@ export const QuestionForm = ({
         });
     };
 
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const handleAnswerCorrectChange = (index: number, isCorrect: boolean) => {
         const newAnswers = [...question.answers];
 
@@ -130,6 +134,7 @@ export const QuestionForm = ({
         });
     };
 
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const addAnswer = () => {
         if (
             question.questionType === 'OPEN_ENDED' ||
@@ -147,6 +152,7 @@ export const QuestionForm = ({
         });
     };
 
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const removeAnswer = (index: number) => {
         if (question.answers.length <= 2) {
             return;
@@ -158,7 +164,8 @@ export const QuestionForm = ({
         });
     };
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 

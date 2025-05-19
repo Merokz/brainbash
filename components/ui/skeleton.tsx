@@ -1,9 +1,10 @@
 import { cn } from '@/lib/utils';
+import { HTMLAttributes, JSX } from 'react';
 
 const Skeleton = ({
     className,
     ...props
-}: React.HTMLAttributes<HTMLDivElement>) => {
+}: HTMLAttributes<HTMLDivElement>): JSX.Element => {
     return (
         <div
             className={cn('animate-pulse rounded-md bg-muted', className)}

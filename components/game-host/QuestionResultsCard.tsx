@@ -1,10 +1,11 @@
 'use client';
 
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { ChevronRight } from 'lucide-react';
+import Image from 'next/image';
+import { JSX } from 'react';
 
 // Define types
 interface Answer {
@@ -40,7 +41,7 @@ export const QuestionResultsCard = ({
     participantAnswers,
     isLastQuestion,
     onNextAction,
-}: QuestionResultsCardProps) => {
+}: QuestionResultsCardProps): JSX.Element => {
     const totalValidAnswers = participantAnswers.filter(
         (pa) => pa.answerId !== null,
     ).length;

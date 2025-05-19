@@ -2,11 +2,12 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { JSX } from 'react';
 
 interface Answer {
     id: number;
@@ -46,7 +47,7 @@ export const GameQuestionScreen = ({
     onAnswerSelect,
     onOpenAnswerChange,
     onSubmitAnswer,
-}: GameQuestionScreenProps) => {
+}: GameQuestionScreenProps): JSX.Element => {
     return (
         <Card className="w-full max-w-md">
             <CardContent className="pt-6">

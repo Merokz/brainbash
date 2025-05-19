@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 import {
     Card,
     CardContent,
@@ -9,15 +8,16 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useRouter } from 'next/navigation';
+import { JSX, useEffect, useState } from 'react';
 
 interface Lobby {
     id: number;
@@ -33,7 +33,7 @@ interface Lobby {
     };
 }
 
-export const PublicLobbies = () => {
+export const PublicLobbies = (): JSX.Element => {
     const [lobbies, setLobbies] = useState<Lobby[]>([]);
     const [loading, setLoading] = useState(true);
     const [username, setUsername] = useState('');
@@ -42,6 +42,7 @@ export const PublicLobbies = () => {
     const router = useRouter();
 
     useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
         async function fetchLobbies() {
             try {
                 const response = await fetch('/api/lobbies');
@@ -62,6 +63,7 @@ export const PublicLobbies = () => {
         return () => clearInterval(interval);
     }, []);
 
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const handleJoinLobby = async () => {
         if (!selectedLobby || !username.trim()) return;
 
