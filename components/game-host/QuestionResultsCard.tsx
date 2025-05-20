@@ -28,7 +28,6 @@ export interface ParticipantAnswer {
 }
 
 interface QuestionResultsCardProps {
-<<<<<<< HEAD
     question: Question;
     questionNumber: number;
     participantAnswers: ParticipantAnswer[];
@@ -46,25 +45,6 @@ export const QuestionResultsCard = ({
     const totalValidAnswers = participantAnswers.filter(
         (pa) => pa.answerId !== null,
     ).length;
-=======
-  question: Question;
-  questionNumber: number;
-  participantAnswers: ParticipantAnswer[];
-  isLastQuestion: boolean;
-  onNextAction: () => void; // Handles "Next Question" or "Show Final Results"
-  isLoadingAction?: boolean; // Added
-}
-
-export function QuestionResultsCard({
-  question,
-  questionNumber,
-  participantAnswers,
-  isLastQuestion,
-  onNextAction,
-  isLoadingAction, // Added
-}: QuestionResultsCardProps) {
-  const totalValidAnswers = participantAnswers.filter(pa => pa.answerId !== null).length;
->>>>>>> main
 
     return (
         <Card>
@@ -132,7 +112,6 @@ export function QuestionResultsCard({
                     </div>
                 </div>
 
-<<<<<<< HEAD
                 <div className="flex justify-end">
                     <Button onClick={onNextAction} size="lg">
                         {isLastQuestion ? (
@@ -149,19 +128,3 @@ export function QuestionResultsCard({
         </Card>
     );
 };
-=======
-        <div className="flex justify-end">
-          <Button onClick={onNextAction} size="lg" loading={isLoadingAction} disabled={isLoadingAction}> {/* Modified */}
-            {isLastQuestion ? "Show Final Results" : (
-              <>
-                next question
-                <ChevronRight className="ml-2 h-4 w-4" />
-              </>
-            )}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
->>>>>>> main

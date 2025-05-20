@@ -6,7 +6,6 @@ interface HomeHeroProps {
     user: any;
 }
 
-<<<<<<< HEAD
 export const HomeHero = ({ user }: HomeHeroProps): JSX.Element => {
     return (
         <section
@@ -48,25 +47,6 @@ export const HomeHero = ({ user }: HomeHeroProps): JSX.Element => {
                         </div>
                     </div>
                 </div>
-=======
-export function HomeHero({ user }: HomeHeroProps) {
-  return (
-    <section
-      className="w-full py-12 md:py-24 lg:py-32 bg-cover bg-center bg-no-repeat"
-      style={{ backgroundImage: "url('/hero_transparent.png')" }}
-    >
-      <div className="header-enable-scroll-behind"></div>
-      <div className="w-full h-full">
-        <div className="container px-4 md:px-6">
-          <div className="flex flex-col items-center space-y-4 text-center">
-            <div className="space-y-2">
-              <h1 className="text-3xl tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl">
-                welcome to yuno
-              </h1>
-              <p className="mx-auto max-w-[700px] md:text-xl">
-                create and participate in interactive quiz games in real-time
-              </p>
->>>>>>> main
             </div>
         </section>
     );

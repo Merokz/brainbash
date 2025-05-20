@@ -1,14 +1,7 @@
-<<<<<<< HEAD
 import { compare, hash } from 'bcrypt';
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
-import { findUserById, getParticipantByIdAndLobbyId } from './commands';
-=======
-import { getUserById, getParticipantByIdAndLobbyId } from "./commands";
-import { compare, hash } from "bcrypt";
-import { SignJWT, jwtVerify } from "jose";
-import { cookies } from "next/headers";
->>>>>>> main
+import { getParticipantByIdAndLobbyId, getUserById } from './commands';
 
 const SECRET_KEY = new TextEncoder().encode(
     process.env.JWT_SECRET || 'default-secret-key-change-in-production',
@@ -62,7 +55,6 @@ export const verifyToken = async (token: string): Promise<any> => {
     }
 };
 
-<<<<<<< HEAD
 export const getUserFromToken = async (): Promise<any> => {
     const cookieStore = cookies(); // Get the cookie store instance
     const token = (await cookieStore).get('auth_token')?.value; // Access its methods directly
@@ -70,12 +62,6 @@ export const getUserFromToken = async (): Promise<any> => {
     if (!token) {
         // This is a normal case for guests/participants, so no error log needed here.
         return null;
-=======
-    const user = await getUserById(payload.userId);
-    if (!user) {
-      // User ID from token not found in DB
-      return null;
->>>>>>> main
     }
     try {
         const payload = await verifyToken(token);
@@ -84,7 +70,7 @@ export const getUserFromToken = async (): Promise<any> => {
             return null;
         }
 
-        const user = await findUserById(payload.userId);
+        const user = await getUserById(payload.userId);
         if (!user) {
             // User ID from token not found in DB
             return null;

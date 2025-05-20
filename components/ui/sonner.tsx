@@ -9,7 +9,6 @@ type ToasterProps = ComponentProps<typeof Sonner>;
 const Toaster = ({ ...props }: ToasterProps): JSX.Element => {
     const { theme = 'system' } = useTheme();
 
-<<<<<<< HEAD
     return (
         <Sonner
             theme={theme as ToasterProps['theme']}
@@ -28,15 +27,5 @@ const Toaster = ({ ...props }: ToasterProps): JSX.Element => {
         />
     );
 };
-=======
-  return (
-    <Sonner
-      theme={theme as ToasterProps["theme"]}
-      className="toaster group"
-      {...props}
-    />
-  )
-}
->>>>>>> main
 
 export { Toaster };
