@@ -75,6 +75,14 @@
   }
 
   .animate-gradient-x {
-    animation: gradient-x 4s ease infinite;
+    animation: gradient-x 2s ease infinite;
   }
+}
+
+.header-scroll-behind-rule:has(.header-enable-scroll-behind) .header-default-reserved-space {
+  position: fixed;
+}
+
+.header-enable-scroll-behind {
+  height: 56px;
 }

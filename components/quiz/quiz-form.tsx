@@ -1,5 +1,6 @@
 'use client';
 
+<<<<<<< HEAD
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,6 +11,19 @@ import { Textarea } from '@/components/ui/textarea';
 import { useRouter } from 'next/navigation';
 import { JSX, useEffect, useState } from 'react';
 import { QuestionForm } from './question-form';
+=======
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Switch } from "@/components/ui/switch"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { QuestionForm } from "./question-form"
+import { showToast } from "@/lib/sonner"
+>>>>>>> main
 
 interface Question {
     id?: number;
@@ -29,6 +43,7 @@ interface Answer {
     isCorrect: boolean;
 }
 
+<<<<<<< HEAD
 export const QuizForm = ({ quiz }: { quiz?: any }): JSX.Element => {
     const [title, setTitle] = useState(quiz?.title || '');
     const [description, setDescription] = useState(quiz?.description || '');
@@ -40,6 +55,16 @@ export const QuizForm = ({ quiz }: { quiz?: any }): JSX.Element => {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
     const router = useRouter();
+=======
+export function QuizForm({ quiz }: { quiz?: any }) {
+  const [title, setTitle] = useState(quiz?.title || "")
+  const [description, setDescription] = useState(quiz?.description || "")
+  const [isPublic, setIsPublic] = useState(quiz?.isPublic || false)
+  const [questions, setQuestions] = useState<Question[]>(quiz?.questions || [])
+  const [activeTab, setActiveTab] = useState("details")
+  const [saving, setSaving] = useState(false)
+  const router = useRouter()
+>>>>>>> main
 
     useEffect(() => {
         if (quiz) {
@@ -50,12 +75,37 @@ export const QuizForm = ({ quiz }: { quiz?: any }): JSX.Element => {
         }
     }, [quiz]);
 
+<<<<<<< HEAD
     const addQuestion = (): any => {
         // Don't allow more than 8 questions
         if (questions.length >= 8) {
             setError('Maximum of 8 questions allowed per quiz');
             return;
         }
+=======
+  const addQuestion = () => {
+    // Don't allow more than 8 questions
+    if (questions.length >= 8) {
+      showToast("Maximum of 8 questions allowed per quiz", false)
+      return
+    }
+    
+    setQuestions([
+      ...questions,
+      {
+        questionText: "",
+        image: null,
+        questionType: "MULTIPLE_CHOICE",
+        answers: [
+          { answerText: "", isCorrect: false },
+          { answerText: "", isCorrect: false },
+          { answerText: "", isCorrect: false },
+          { answerText: "", isCorrect: false },
+        ],
+      },
+    ])
+  }
+>>>>>>> main
 
         setQuestions([
             ...questions,
@@ -80,6 +130,7 @@ export const QuizForm = ({ quiz }: { quiz?: any }): JSX.Element => {
         setQuestions(newQuestions);
     };
 
+<<<<<<< HEAD
     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const removeQuestion = (index: number) => {
         setQuestions(questions.filter((_, i) => i !== index));
@@ -93,6 +144,21 @@ export const QuizForm = ({ quiz }: { quiz?: any }): JSX.Element => {
             setActiveTab('details');
             return;
         }
+=======
+  const handleSubmit = async () => {
+    // Validate form
+    if (!title.trim()) {
+      showToast("quiz title is required", false)
+      setActiveTab("details")
+      return
+    }
+
+    if (questions.length === 0) {
+      showToast("at least one question is required", false)
+      setActiveTab("questions")
+      return
+    }
+>>>>>>> main
 
         if (questions.length === 0) {
             setError('At least one question is required');
@@ -100,6 +166,7 @@ export const QuizForm = ({ quiz }: { quiz?: any }): JSX.Element => {
             return;
         }
 
+<<<<<<< HEAD
         // Validate questions
         for (let i = 0; i < questions.length; i++) {
             const q = questions[i];
@@ -129,6 +196,39 @@ export const QuizForm = ({ quiz }: { quiz?: any }): JSX.Element => {
 
         setSaving(true);
         setError('');
+=======
+      if (!q.questionText.trim()) {
+        showToast(`question ${i + 1} text is required`, false)
+        setActiveTab("questions")
+        return
+      }
+
+      // Check if at least one answer is marked as correct
+      if (!q.answers.some((a) => a.isCorrect)) {
+        showToast(`question ${i + 1} must have at least one correct answer`, false)
+        setActiveTab("questions")
+        return
+      }
+
+      // Check if all answers have text
+      if (q.answers.some((a) => !a.answerText.trim())) {
+        showToast(`all answers for question ${i + 1} must have text`, false)
+        setActiveTab("questions")
+        return
+      }
+    }
+
+    setSaving(true)
+
+    try {
+      console.log(JSON.stringify({
+        title,
+        description,
+        isPublic,
+        questions,
+      }));
+      const endpoint = quiz?.id ? `/api/quizzes/edit/${quiz.id}` : "/api/quizzes/create"
+>>>>>>> main
 
         try {
             console.log(
@@ -145,6 +245,7 @@ export const QuizForm = ({ quiz }: { quiz?: any }): JSX.Element => {
 
             const method = quiz?.id ? 'PUT' : 'POST';
 
+<<<<<<< HEAD
             const response = await fetch(endpoint, {
                 method,
                 headers: {
@@ -157,6 +258,23 @@ export const QuizForm = ({ quiz }: { quiz?: any }): JSX.Element => {
                     questions,
                 }),
             });
+=======
+      if (response.ok) {
+        const data = await response.json()
+        showToast("quiz created successfully", true)
+        router.push("/")
+      } else {
+        const errorData = await response.json()
+        showToast("failed to save quiz", false)
+      }
+    } catch (error) {
+      console.error("Error saving quiz:", error)
+      showToast("an error occurred while saving the quiz", false)
+    } finally {
+      setSaving(false)
+    }
+  }
+>>>>>>> main
 
             if (response.ok) {
                 await response.json();
@@ -259,6 +377,7 @@ export const QuizForm = ({ quiz }: { quiz?: any }): JSX.Element => {
                         </Card>
                     )}
 
+<<<<<<< HEAD
                     {/* Show add button only if under the limit */}
                     {questions.length < 8 ? (
                         <Button
@@ -299,3 +418,20 @@ export const QuizForm = ({ quiz }: { quiz?: any }): JSX.Element => {
         </div>
     );
 };
+=======
+          
+          <div className="flex justify-between">
+            <Button variant="outline" onClick={() => setActiveTab("details")}>
+              back to details
+            </Button>
+
+            <Button onClick={handleSubmit} loading={saving} disabled={saving}>
+              {quiz?.id ? "update quiz" : "create quiz"}
+            </Button>
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
+  )
+}
+>>>>>>> main

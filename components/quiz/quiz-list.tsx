@@ -1,6 +1,7 @@
 'use client';
 
 import {
+<<<<<<< HEAD
     AlertDialog,
     AlertDialogAction,
     AlertDialogCancel,
@@ -15,6 +16,18 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { JSX, useState } from 'react';
+=======
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { showToast } from "@/lib/sonner"
+>>>>>>> main
 
 interface Quiz {
     id: number;
@@ -45,6 +58,7 @@ export const QuizList = ({ quizzes }: QuizListProps): JSX.Element => {
                 method: 'DELETE',
             });
 
+<<<<<<< HEAD
             if (response.ok) {
                 // Refresh the page to update the quiz list
                 router.refresh();
@@ -58,6 +72,22 @@ export const QuizList = ({ quizzes }: QuizListProps): JSX.Element => {
             setDeleteQuizId(null);
         }
     };
+=======
+      if (response.ok) {
+        // Refresh the page to update the quiz list
+        showToast("quiz deleted successfully", true)
+        router.refresh()
+      } else {
+        console.error("Failed to delete quiz")
+      }
+    } catch (error) {
+      console.error("Error deleting quiz:", error)
+    } finally {
+      setIsDeleting(false)
+      setDeleteQuizId(null)
+    }
+  }
+>>>>>>> main
 
     if (quizzes.length === 0) {
         return (

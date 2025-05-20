@@ -169,4 +169,82 @@ const Register = (): JSX.Element => {
     );
 };
 
+<<<<<<< HEAD
 export default Register;
+=======
+  return (
+    <div className="flex min-h-screen items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1 flex flex-col items-center">
+          <Image src={logo} alt="Logo" width={250} height={250} />
+          <CardTitle className="text-2xl font-bold">create an account</CardTitle>
+          <CardDescription>enter your information to create a host account</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="username">username</Label>
+              <Input
+                id="username"
+                name="username"
+                value={formData.username}
+                onChange={handleChange}
+                placeholder="enter your username"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">email</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="enter your email"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">password</Label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="enter your password"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">confirm password</Label>
+              <Input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                placeholder="confirm your password"
+                required
+              />
+            </div>
+            {error && <div className="text-sm text-red-500">{error}</div>}
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "creating account..." : "create account"}
+            </Button>
+          </form>
+        </CardContent>
+        <CardFooter className="flex justify-center">
+          <div className="text-sm text-muted-foreground">
+            already have an account?  
+            <Link href="/login" className="text-primary hover:underline ml-2">
+              login
+            </Link>
+          </div>
+        </CardFooter>
+      </Card>
+    </div>
+  )
+}
+>>>>>>> main
