@@ -14,6 +14,7 @@ export function getPusherClient(): PusherClient {
             process.env.NEXT_PUBLIC_PUSHER_KEY || 'e71affa9b3e272313888',
             {
                 cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER || 'eu',
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 authorizer: (channel, options) => {
                     return {
                         authorize: (socketId, callback) => {

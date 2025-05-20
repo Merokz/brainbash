@@ -1,4 +1,4 @@
-export async function getQuizVersions(rootQuizId: number) {
+export const getQuizVersions = async (rootQuizId: number): Promise<any> => {
     // Find all versions of a quiz
     return prisma.quiz.findMany({
         where: {
@@ -15,4 +15,4 @@ export async function getQuizVersions(rootQuizId: number) {
             createdAt: true,
         },
     });
-}
+};

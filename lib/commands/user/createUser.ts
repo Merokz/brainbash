@@ -1,8 +1,8 @@
-export async function createUser(
+export const createUser = async (
     username: string,
     email: string,
     password: string,
-) {
+): Promise<any> => {
     return prisma.user.create({
         data: {
             username,
@@ -10,4 +10,4 @@ export async function createUser(
             password,
         },
     });
-}
+};

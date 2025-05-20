@@ -1,4 +1,4 @@
-export async function startGame(lobbyId: number) {
+export const startGame = async (lobbyId: number): Promise<any> => {
     // fetch lobby and its quiz, questions, and answers
     const lobby = await prisma.lobby.findUnique({
         where: { id: lobbyId },
@@ -18,7 +18,7 @@ export async function startGame(lobbyId: number) {
     // determine root quiz for versioning
     const rootQuizId = original.parentQuizId ?? original.id;
     // create a versioned clone of the quiz, questions, and answers
-    const cloned = await prisma.quiz.create({
+    await prisma.quiz.create({
         data: {
             title: original.title,
             description: original.description,
@@ -55,4 +55,4 @@ export async function startGame(lobbyId: number) {
             questionStartedAt: null,
         },
     });
-}
+};

@@ -15,6 +15,7 @@ type ToasterToast = ToastProps & {
     action?: ToastActionElement;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const actionTypes = {
     ADD_TOAST: 'ADD_TOAST',
     UPDATE_TOAST: 'UPDATE_TOAST',
@@ -55,7 +56,7 @@ interface State {
 
 const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
 
-const addToRemoveQueue = (toastId: string) => {
+const addToRemoveQueue = (toastId: string): void => {
     if (toastTimeouts.has(toastId)) {
         return;
     }

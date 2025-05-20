@@ -1,7 +1,7 @@
 import { saveBase64Image } from '@/lib/save-image';
 import { getQuizById } from './getQuizById';
 
-export async function createQuizVersion(
+export const createQuizVersion = async (
     originalQuizId: number,
     updatedData: {
         title: string;
@@ -9,7 +9,7 @@ export async function createQuizVersion(
         isPublic: boolean;
         questions: any[];
     },
-) {
+): Promise<any> => {
     // Get original quiz with questions and answers
     const originalQuiz = await getQuizById(originalQuizId);
 
@@ -110,4 +110,4 @@ export async function createQuizVersion(
             return newQuiz;
         },
     );
-}
+};

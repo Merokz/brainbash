@@ -1,10 +1,10 @@
-export async function createNewQuiz(
+export const createNewQuiz = async (
     creatorId: number,
     title: string,
     description: string,
     isPublic: boolean,
     version: number = 1,
-) {
+): Promise<any> => {
     return prisma.quiz.create({
         data: {
             title,
@@ -15,4 +15,4 @@ export async function createNewQuiz(
             valid: true,
         },
     });
-}
+};

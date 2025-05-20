@@ -48,14 +48,14 @@ type SidebarContext = {
 
 const SidebarContext = createContext<SidebarContext | null>(null);
 
-function useSidebar() {
+const useSidebar = (): SidebarContext => {
     const context = useContext(SidebarContext);
     if (!context) {
         throw new Error('useSidebar must be used within a SidebarProvider.');
     }
 
     return context;
-}
+};
 
 const SidebarProvider = forwardRef<
     HTMLDivElement,
@@ -109,6 +109,7 @@ const SidebarProvider = forwardRef<
 
         // Adds a keyboard shortcut to toggle the sidebar.
         useEffect(() => {
+            // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
             const handleKeyDown = (event: KeyboardEvent) => {
                 if (
                     event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
@@ -316,6 +317,7 @@ const SidebarRail = forwardRef<HTMLButtonElement, ComponentProps<'button'>>(
 
         return (
             <button
+                type="button"
                 ref={ref}
                 data-sidebar="rail"
                 aria-label="Toggle Sidebar"

@@ -7,11 +7,11 @@ export const USER_CACHE_TTL = 300; // 5 minutes for user-related queries
 
 declare global {
     // Allow extended Prisma client (with cache extension) or undefined
-    var prisma: PrismaClient;
+    let prisma: PrismaClient;
 }
 
 // Connection pooling configuration
-const prismaClientSingleton = () => {
+const prismaClientSingleton = (): any => {
     // Base Prisma client with logging and datasource config
     const base = new PrismaClient({
         log:

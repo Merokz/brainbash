@@ -1,4 +1,4 @@
-export async function getGameResults(lobbyId: number) {
+export const getGameResults = async (lobbyId: number): Promise<any> => {
     const participants = await prisma.participant.findMany({
         where: { lobbyId, valid: true },
         include: {
@@ -13,4 +13,4 @@ export async function getGameResults(lobbyId: number) {
     });
 
     return participants;
-}
+};

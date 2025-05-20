@@ -16,7 +16,7 @@ type ParticipationWithLobbyAndQuiz = {
     };
 };
 
-export async function getHistory(userId: number) {
+export const getHistory = async (userId: number): Promise<any> => {
     try {
         const participations: ParticipationWithLobbyAndQuiz[] =
             await prisma.participant.findMany({
@@ -47,4 +47,4 @@ export async function getHistory(userId: number) {
         console.error('Failed to fetch participation history:', error);
         throw new Error('Could not retrieve participation history.');
     }
-}
+};

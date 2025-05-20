@@ -1,4 +1,4 @@
-export async function createQuestion(
+export const createQuestion = (
     quizId: number,
     data: {
         questionText: string;
@@ -6,11 +6,11 @@ export async function createQuestion(
         orderNum: number;
         questionType: string;
     },
-) {
+): Promise<any> => {
     return prisma.question.create({
         data: {
             quizId,
             ...data,
         },
     });
-}
+};

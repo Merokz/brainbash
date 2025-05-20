@@ -1,4 +1,7 @@
-export async function startQuestion(lobbyId: number, questionIndex: number) {
+export const startQuestion = async (
+    lobbyId: number,
+    questionIndex: number,
+): Promise<any> => {
     return prisma.lobby.update({
         where: { id: lobbyId },
         data: {
@@ -6,4 +9,4 @@ export async function startQuestion(lobbyId: number, questionIndex: number) {
             questionStartedAt: new Date(), // Server timestamp
         },
     });
-}
+};

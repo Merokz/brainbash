@@ -1,4 +1,4 @@
-export async function getLobbyById(lobbyId: number) {
+export const getLobbyById = async (lobbyId: number): Promise<any> => {
     return prisma.lobby.findUnique({
         where: {
             id: lobbyId,
@@ -28,4 +28,4 @@ export async function getLobbyById(lobbyId: number) {
             },
         },
     });
-}
+};

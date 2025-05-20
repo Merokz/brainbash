@@ -1,4 +1,4 @@
-export async function getLobbyByJoinCode(joinCode: string) {
+export const getLobbyByJoinCode = (joinCode: string): Promise<any> => {
     return prisma.lobby.findUnique({
         where: {
             joinCode,
@@ -13,4 +13,4 @@ export async function getLobbyByJoinCode(joinCode: string) {
             },
         },
     });
-}
+};

@@ -9,6 +9,7 @@ export const useIsMobile = (): any => {
         const mql = window.matchMedia(
             `(max-width: ${MOBILE_BREAKPOINT - 1}px)`,
         );
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
         const onChange = () => {
             setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
         };

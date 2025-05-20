@@ -12,6 +12,7 @@ export type PrismaClient = DynamicClientExtensionThis<
             query: any;
             client: any;
         },
+        // eslint-disable-next-line @typescript-eslint/no-empty-object-type
         {}
     >,
     Prisma.TypeMapCb<{

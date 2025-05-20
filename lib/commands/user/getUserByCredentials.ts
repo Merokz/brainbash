@@ -1,4 +1,6 @@
-export async function findUserByCredentials(usernameOrEmail: string) {
+export const findUserByCredentials = async (
+    usernameOrEmail: string,
+): Promise<any> => {
     return prisma.user.findFirst({
         where: {
             OR: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
@@ -11,4 +13,4 @@ export async function findUserByCredentials(usernameOrEmail: string) {
             password: true,
         },
     });
-}
+};

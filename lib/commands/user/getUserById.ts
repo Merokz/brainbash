@@ -1,4 +1,4 @@
-export async function findUserById(userId: number) {
+export const findUserById = async (userId: number): Promise<any> => {
     return prisma.user.findUnique({
         where: {
             id: userId,
@@ -11,4 +11,4 @@ export async function findUserById(userId: number) {
             isRegistered: true,
         },
     });
-}
+};

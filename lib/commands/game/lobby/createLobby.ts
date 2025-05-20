@@ -1,8 +1,8 @@
-export async function createLobby(
+export const createLobby = async (
     quizId: number,
     hostId: number,
-    isPublic: boolean,
-) {
+    // isPublic: boolean,
+): Promise<any> => {
     // Generate a unique 5-digit join code
     let joinCode = '00000';
     let isUnique = false;
@@ -23,4 +23,4 @@ export async function createLobby(
             state: 'IN_LOBBY',
         },
     });
-}
+};

@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 /**
  * Simple in-memory cache with TTL and wildcard deletion support.
@@ -30,13 +30,13 @@ export class MemoryCache {
         return result;
     }
 
-    set<T>(key: string, value: T, ttlSeconds?: number) {
+    set<T>(key: string, value: T, ttlSeconds?: number): void {
         const ttl = ttlSeconds ?? this.defaultTtlSeconds;
         const expiresAt = Date.now() + ttl * 1000;
         this.store.set(key, { value, expiresAt });
     }
 
-    async delete(pattern: string) {
+    delete = async (pattern: string): Promise<void> => {
         // support wildcard suffix, e.g. "User:123*"
         const isWildcard = pattern.endsWith('*');
         const prefix = isWildcard ? pattern.slice(0, -1) : pattern;
@@ -49,7 +49,7 @@ export class MemoryCache {
                 this.store.delete(key);
             }
         }
-    }
+    };
 }
 
 const OP_FIND_FIRST = 'findFirst';
@@ -80,9 +80,9 @@ function stableStringify(obj: any): string {
     );
 }
 
-function generateUniqueKey(args: any) {
+const generateUniqueKey = (args: any): string => {
     return stableStringify(args);
-}
+};
 
 export const cacheClient = new MemoryCache(60);
 

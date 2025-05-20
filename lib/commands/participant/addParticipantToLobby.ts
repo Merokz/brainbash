@@ -1,8 +1,8 @@
-export async function addParticipantToLobby(
+export const addParticipantToLobby = async (
     lobbyId: number,
     username: string,
     userId?: number,
-) {
+): Promise<any> => {
     return prisma.participant.create({
         data: {
             lobbyId,
@@ -11,4 +11,4 @@ export async function addParticipantToLobby(
             sessionToken: '', // This will be updated after creation
         },
     });
-}
+};

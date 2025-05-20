@@ -1,4 +1,4 @@
-export async function updateQuestion(
+export const updateQuestion = async (
     questionId: number,
     data: {
         questionText: string;
@@ -7,9 +7,9 @@ export async function updateQuestion(
         questionType: string;
         valid: boolean;
     },
-) {
+): Promise<any> => {
     return prisma.question.update({
         where: { id: questionId },
         data,
     });
-}
+};

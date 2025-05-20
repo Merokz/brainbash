@@ -1,4 +1,4 @@
-export async function getPublicQuizzes() {
+export const getPublicQuizzes = async (): Promise<any> => {
     return prisma.quiz.findMany({
         where: {
             isPublic: true,
@@ -17,4 +17,4 @@ export async function getPublicQuizzes() {
             },
         },
     });
-}
+};
